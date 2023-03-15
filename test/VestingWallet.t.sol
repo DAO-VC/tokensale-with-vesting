@@ -39,7 +39,7 @@ contract VestingWalletTest is Test {
         bool revocable = true;
         uint256 amount = 100 * 1e6; 
 
-        // uint256 calendarNumber = 1;
+        uint256 calendarNumber = 0;
 
         wallet.createVestingSchedule(address(this), start, cliff, duration, slicePeriodSeconds, revocable, amount);
 
@@ -49,19 +49,23 @@ contract VestingWalletTest is Test {
         console.log('Total vestings calendars for current user', vestingScheduleCount);
 
         
-        
-        //bytes32 vestingCalendarId = wallet.computeVestingScheduleIdForAddressAndIndex(address(this), calendarNumber);
+        //for (uint256 i = 0; i <= vestingScheduleCount; i++) {
+        bytes32 vestingCalendarId = wallet.computeVestingScheduleIdForAddressAndIndex(address(this), calendarNumber);
+
+        //console.logBytes32(wallet.computeVestingScheduleIdForAddressAndIndex(address(this), calendarNumber));
+        //}
 
         //console.log('Vesting callendar index', wallet.computeVestingScheduleIdForAddressAndIndex(address(this), calendarNumber));
 
-        //console.log('Avaible amount for claim from wallet',wallet.computeReleasableAmount(wallet.computeVestingScheduleIdForAddressAndIndex(address(this), wallet.getVestingSchedulesCountByBeneficiary(address(this)))));
+        uint256 avaibleToClaim = wallet.computeReleasableAmount(vestingCalendarId);
+        console.log('Avaible amount for claim from wallet', avaibleToClaim);
+        
+        wallet.release(vestingCalendarId, avaibleToClaim);
+
+        console.log('balance of test user after release tokens',usdc.balanceOf(address(this)));
 
         
-        //wallet.release(wallet.computeVestingScheduleIdForAddressAndIndex(address(this), calendarNumber), wallet.computeReleasableAmount(wallet.computeVestingScheduleIdForAddressAndIndex(address(this), calendarNumber)));
-
-        //console.log('balance of test user after release tokens',usdc.balanceOf(address(this)));
-
-        //console.log('Avaible amount for claim from wallet',wallet.computeReleasableAmount(wallet.computeVestingScheduleIdForAddressAndIndex(address(this), calendarNumber)));
+        console.log('Avaible amount for claim from wallet',wallet.computeReleasableAmount(vestingCalendarId));
 
 
         //counter.increment();
