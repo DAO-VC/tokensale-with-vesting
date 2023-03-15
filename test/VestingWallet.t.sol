@@ -9,7 +9,7 @@ contract VestingWalletTest is Test {
     // dev: any erc20 token for testing vesting calendar on mainnet forking
     address constant USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48; // USDT = 0xdAC17F958D2ee523a2206206994597C13D831ec7; // DAI 0x6B175474E89094C44Da98b954EedeAC495271d0F;//
     //address constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
-    address private constant USDC_WHALE = 0x3C7739f71c4Fa409De4e732d7a2fDc95b74c4581;
+    address private constant USDC_WHALE = 0xF977814e90dA44bFA03b6295A0616a897441aceC; // binance account with 3 billions USDC
     IERC20 private constant usdc = IERC20(USDC);
 
 
@@ -32,7 +32,7 @@ contract VestingWalletTest is Test {
 
     function testSingleVestingSlice() public {
 
-        uint256 start = 1622551248; // Tuesday, 1 June 2021 г., 12:40:48 https://www.epochconverter.com/
+        uint256 start = block.timestamp;//1678896515;//block.timestamp; // Tuesday, 1 June 2021 г., 12:40:48 https://www.epochconverter.com/ 1678896515
         uint256 cliff = 0;
         uint256 duration = 604800; // seconds in week
         uint256 slicePeriodSeconds = 1;
@@ -40,6 +40,9 @@ contract VestingWalletTest is Test {
         uint256 amount = 100 * 1e6; 
 
         uint256 calendarNumber = 0;
+
+        console.log('Block number in starting', block.number);
+        console.log('Timestamp', block.timestamp);
 
         wallet.createVestingSchedule(address(this), start, cliff, duration, slicePeriodSeconds, revocable, amount);
 
@@ -57,15 +60,24 @@ contract VestingWalletTest is Test {
 
         //console.log('Vesting callendar index', wallet.computeVestingScheduleIdForAddressAndIndex(address(this), calendarNumber));
 
-        uint256 avaibleToClaim = wallet.computeReleasableAmount(vestingCalendarId);
-        console.log('Avaible amount for claim from wallet', avaibleToClaim);
+        //uint256 avaibleToClaim = wallet.computeReleasableAmount(vestingCalendarId);
+        console.log('Avaible amount for claim from wallet before warp', wallet.computeReleasableAmount(vestingCalendarId));
         
+        //vm.roll(block.number + 100);
+        vm.warp(block.timestamp + duration + 1);
+
+        uint256 avaibleToClaim = wallet.computeReleasableAmount(vestingCalendarId);
+        console.log('Avaible amount for claim from wallet after warp', avaibleToClaim);
+        
+        //console.log('Block number 2', block.number);
+        //console.log('Timestamp 2', block.timestamp);
+
         wallet.release(vestingCalendarId, avaibleToClaim);
 
         console.log('balance of test user after release tokens',usdc.balanceOf(address(this)));
 
         
-        console.log('Avaible amount for claim from wallet',wallet.computeReleasableAmount(vestingCalendarId));
+        console.log('Avaible amount for claim from wallet after release',wallet.computeReleasableAmount(vestingCalendarId));
 
 
         //counter.increment();
