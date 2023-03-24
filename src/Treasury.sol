@@ -1,4 +1,4 @@
-// contracts/VestingWallet.sol
+// contracts/Treasury.sol
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.17;
 
@@ -10,9 +10,9 @@ import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 /**
- * @title VestingWallet
+ * @title Treasury for product
  */
-contract VestingWallet is Ownable, ReentrancyGuard{
+contract Treasury is Ownable, ReentrancyGuard{
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
     struct VestingSchedule{
@@ -211,6 +211,18 @@ contract VestingWallet is Ownable, ReentrancyGuard{
         onlyOwner{
         require(this.getWithdrawableAmount() >= amount, "TokenVesting: not enough withdrawable funds");
         _token.safeTransfer(owner(), amount);
+    }
+
+
+    function withdrawTo(
+        uint256 amount,
+        address beneficiary
+    )
+        public
+        nonReentrant
+        onlyOwner{    
+        require(this.getWithdrawableAmount() >= amount, "TokenVesting: not enough withdrawable funds");
+        _token.safeTransfer(beneficiary, amount);
     }
 
     /**
