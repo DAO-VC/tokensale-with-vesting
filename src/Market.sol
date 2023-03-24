@@ -12,7 +12,6 @@ contract Market is AccessControl {
     bytes32 public constant OPERATOR = keccak256("OPERATOR");
 
     IERC20 public currency;
-    IERC20 public product;
 
     ITreasury public productTreasury;
     address public currencyTreasury;
@@ -104,7 +103,7 @@ contract Market is AccessControl {
 
     }
 
-    function calculateOrderSize(uint256 _market, uint256 _amount) private returns(uint256 _tgeAmount, uint256 _vestingAmount) {
+    function calculateOrderSize(uint256 _market, uint256 _amount) public view returns(uint256 _tgeAmount, uint256 _vestingAmount) {
         require(marketsCount > _market, "Incorect market");
 
         _tgeAmount = _amount * markets[_market].tgeRatio / 1e6; // 100*3725/1000000
