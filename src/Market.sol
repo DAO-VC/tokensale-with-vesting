@@ -27,6 +27,8 @@ contract Market is AccessControl {
         uint256 price; 
         uint256 minOrderSize;
         uint256 maxOrderSize;
+        bool permisionLess; // true = igniring whitelist
+        //mapping (address => bool) whitelist;
     }
 
     mapping(uint256 => MarketInfo) markets;
@@ -52,7 +54,8 @@ contract Market is AccessControl {
                        uint256 _cliff,
                        uint256 _duration,
                        uint256 _slicePeriod,
-                       bool _revocable
+                       bool _revocable,
+                       bool _permisionLess
                        ) public {
         require(hasRole(OPERATOR, msg.sender), "Caller is not an operator");
 
@@ -65,7 +68,8 @@ contract Market is AccessControl {
             _revocable,
             _price,
             _minOrderSize,
-            _maxOrderSize
+            _maxOrderSize,
+            _permisionLess
         );
         
         marketsCount += 1;
