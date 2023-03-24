@@ -36,9 +36,9 @@ contract Market is AccessControl {
                 address _productTreasury){
                     _setupRole(OPERATOR, msg.sender);
                     currency = IERC20(_currency);
-                    productTresury = ITreasury(_productTreasury);
+                    productTreasury = ITreasury(_productTreasury);
                     //currency = IERC20(currency);
-                    markets = 0;
+                    marketsCount = 0;
 
     }
 
@@ -76,7 +76,7 @@ contract Market is AccessControl {
     function migrateUser(uint256 _market, uint256 _amount, address _benefeciary) public {
         require(hasRole(OPERATOR, msg.sender), "Caller is not an operator");
         require(marketsCount > _market, "Incorect market");
-        require(markets[_market].min >= _amount && markets[_market].max <= _amount, "Min or max order size limit");
+        require(markets[_market].minOrderSize >= _amount && markets[_market].maxOrderSize <= _amount, "Min or max order size limit");
 
         (uint256 tgeAmount, uint256 vestingAmount) = calculateOrderSize(_market, _amount);
         productTreasury.withdrawTo(tgeAmount, _benefeciary);
@@ -85,8 +85,8 @@ contract Market is AccessControl {
 
     function buy(uint256 _market, uint256 _amount, address _benefeciary) public {
         require(marketsCount > _market, "Incorect market");
-        require(markets[_market].min >= _amount && markets[_market].max <= _amount, "Min or max order size limit");
-        currency.safeTransferFrom(msg.sender, currencyTresury, _amount * markets[_market].price);
+        require(markets[_market].minOrderSize >= _amount && markets[_market].maxOrderSize <= _amount, "Min or max order size limit");
+        currency.transferFrom(msg.sender, currencyTreasury, _amount * markets[_market].price);
         (uint256 tgeAmount, uint256 vestingAmount) = calculateOrderSize(_market, _amount);
         productTreasury.withdrawTo(tgeAmount, _benefeciary);
         _migrateUser(_market, vestingAmount, _benefeciary);
@@ -96,7 +96,7 @@ contract Market is AccessControl {
         productTreasury.createVestingSchedule(_benefeciary, 
                                             markets[_market].start, 
                                             markets[_market].cliff, 
-                                            markets[_market].start.duration, 
+                                            markets[_market].duration, 
                                             markets[_market].slicePeriod, 
                                             markets[_market].revocable,
                                             _amount);
@@ -137,7 +137,7 @@ contract Market is AccessControl {
 interface ITreasury {
 
     function withdrawTo(uint256 amount,
-        address beneficiary);
+        address beneficiary) external;
 
     function createVestingSchedule(
         address _beneficiary,
@@ -147,7 +147,7 @@ interface ITreasury {
         uint256 _slicePeriodSeconds,
         bool _revocable,
         uint256 _amount
-    )
+    ) external;
 
 }
 
