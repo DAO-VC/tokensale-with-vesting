@@ -14,8 +14,8 @@ contract Market is AccessControl {
     IERC20 public currency;
     IERC20 public product;
 
-    address public productTresury;
-    address public currencyTresury;
+    ITreasury public productTreasury;
+    address public currencyTreasury;
     uint256 public marketsCount;
 
     struct MarketInfo {
@@ -33,10 +33,10 @@ contract Market is AccessControl {
     mapping(uint256 => MarketInfo) markets;
 
     constructor(address _currency, 
-                address _product){
+                address _productTreasury){
                     _setupRole(OPERATOR, msg.sender);
                     currency = IERC20(_currency);
-                    product = IERC20(_product);
+                    productTresury = ITreasury(_productTreasury);
                     //currency = IERC20(currency);
                     markets = 0;
 
@@ -79,7 +79,7 @@ contract Market is AccessControl {
         require(markets[_market].min >= _amount && markets[_market].max <= _amount, "Min or max order size limit");
 
         (uint256 tgeAmount, uint256 vestingAmount) = calculateOrderSize(_market, _amount);
-        treasury.withdrawTo(tgeAmount, _benefeciary);
+        productTreasury.withdrawTo(tgeAmount, _benefeciary);
         _migrateUser(_market, vestingAmount, _benefeciary);
     }
 
@@ -88,7 +88,7 @@ contract Market is AccessControl {
         require(markets[_market].min >= _amount && markets[_market].max <= _amount, "Min or max order size limit");
         currency.safeTransferFrom(msg.sender, currencyTresury, _amount * markets[_market].price);
         (uint256 tgeAmount, uint256 vestingAmount) = calculateOrderSize(_market, _amount);
-        productTresury.withdrawTo(tgeAmount, _benefeciary);
+        productTreasury.withdrawTo(tgeAmount, _benefeciary);
         _migrateUser(_market, vestingAmount, _benefeciary);
     }
 
@@ -100,7 +100,7 @@ contract Market is AccessControl {
         //bool revocable = true;
         //uint256 amount = 10 * 1e6; 
         //markets[_market].start
-        productTresury.createVestingSchedule(_benefeciary, 
+        productTreasury.createVestingSchedule(_benefeciary, 
                                             markets[_market].start, 
                                             markets[_market].cliff, 
                                             markets[_market].start.duration, 
@@ -141,7 +141,7 @@ contract Market is AccessControl {
 
 
 
-interface Treasury {
+interface ITreasury {
 
     function withdrawTo(uint256 amount,
         address beneficiary);
