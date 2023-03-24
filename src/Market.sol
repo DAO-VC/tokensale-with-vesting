@@ -93,13 +93,6 @@ contract Market is AccessControl {
     }
 
     function _migrateUser(uint256 _market, uint256 _amount, address _benefeciary) private {
-        //uint256 start = block.timestamp;//1678896515;//block.timestamp; // Tuesday, 1 June 2021 г., 12:40:48 https://www.epochconverter.com/ 1678896515
-        //uint256 cliff = 0;
-        //uint256 duration = 1 weeks; 
-        //uint256 slicePeriod = 1 weeks;
-        //bool revocable = true;
-        //uint256 amount = 10 * 1e6; 
-        //markets[_market].start
         productTreasury.createVestingSchedule(_benefeciary, 
                                             markets[_market].start, 
                                             markets[_market].cliff, 
