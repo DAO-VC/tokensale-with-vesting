@@ -13,7 +13,7 @@ contract DeployScript is Script {
 
     function setUp() public {}
 
-    function deployMarketAndTreasury() public {
+    function deployContracts() public {
         string memory seedPhrase = vm.readFile(".secret");
         uint256 privateKey = vm.deriveKey(seedPhrase, 0);
         vm.startBroadcast(privateKey);
@@ -24,23 +24,23 @@ contract DeployScript is Script {
         vm.stopBroadcast();
     }
 
-    function setWhiteList() public {
+    function deployWhiteList() public {
 
     }
 
-    function setTeamVestingCalendar() public {
+    function deployTeamVestingCalendar() public {
 
     }
 
-    function setPrivateRound() public {
+    function deployPrivateRound() public {
 
     }
 
-    function setPublicRound() public {
+    function deployPublicRound() public {
 
     }
 
-    function setSeedRound() public {
+    function deploySeedRound() public {
 
     }
 }
