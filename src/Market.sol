@@ -5,6 +5,7 @@ pragma solidity ^0.8.17;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "../src/treasury.sol";
 
 contract Market is AccessControl {
     using SafeERC20 for ERC20;
@@ -13,7 +14,7 @@ contract Market is AccessControl {
 
     IERC20 public currency;
 
-    ITreasury public productTreasury;
+    Treasury public productTreasury;
     address public currencyTreasury;
     uint256 public marketsCount;
 
@@ -120,11 +121,14 @@ contract Market is AccessControl {
         _price = _amount * markets[_market].price;
     }
 
-    /*
-    function claimForAddressAndIndex() {
+    
+    function claimForAddressAndIndex(address _benefeciary, uint256 _index) public {
+            bytes32 vestingCalendarId = productTreasury.computeVestingScheduleIdForAddressAndIndex(address(this), _index);
+            uint256 avaibleToClaim = productTreasury.computeReleasableAmount(vestingCalendarId);
+            productTreasury.release(vestingCalendarId, avaibleToClaim);
 
     }
-
+/*
     function claimForAddress() {
 
     }
@@ -140,7 +144,7 @@ contract Market is AccessControl {
 }
 
 
-
+/*
 
 interface ITreasury {
 
@@ -157,10 +161,19 @@ interface ITreasury {
         uint256 _amount
     ) external;
 
+    function computeVestingScheduleIdForAddressAndIndex(
+        address holder, 
+        uint256 index
+    ) external;
+
+    function computeReleasableAmount(
+        bytes32 vestingScheduleId 
+    ) external;
+
 }
 
 
-
+*/
 
 
 
