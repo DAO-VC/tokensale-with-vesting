@@ -147,51 +147,20 @@ contract Market is AccessControl {
         return productTreasury.getVestingScheduleByAddressAndIndex(msg.sender, _index);
     }
 
+    // @dev Use carful - O(n) function
     function getVestingSchedules() public view returns(ITreasury.VestingSchedule[] memory){ 
         uint256 vestingScheduleCount = productTreasury.getVestingSchedulesCountByBeneficiary(msg.sender);
         ITreasury.VestingSchedule[] memory vestingSchedules = new ITreasury.VestingSchedule[](vestingScheduleCount);
         for (uint256 calendarNumber = 0; calendarNumber < vestingScheduleCount; calendarNumber++) {
                 vestingSchedules[calendarNumber] = productTreasury.getVestingScheduleByAddressAndIndex(msg.sender, calendarNumber);
-                //vestingSchedules.push(vestingSchedule);
         }
         return vestingSchedules;
+    }
+
+    function getIndexCount() public view returns(uint256) {
+        return productTreasury.getVestingSchedulesCountByBeneficiary(msg.sender);
     }
 
 
 }
 
-
-/*
-
-interface ITreasury {
-
-    function withdrawTo(uint256 amount,
-        address beneficiary) external;
-
-    function createVestingSchedule(
-        address _beneficiary,
-        uint256 _start,
-        uint256 _cliff,
-        uint256 _duration,
-        uint256 _slicePeriodSeconds,
-        bool _revocable,
-        uint256 _amount
-    ) external;
-
-    function computeVestingScheduleIdForAddressAndIndex(
-        address holder, 
-        uint256 index
-    ) external;
-
-    function computeReleasableAmount(
-        bytes32 vestingScheduleId 
-    ) external;
-
-}
-
-
-*/
-
-
-
-    
