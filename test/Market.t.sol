@@ -17,6 +17,7 @@ contract MarketTest is Test {
     IERC20 private constant usdc = IERC20(USDC);
     IERC20 public productToken;
     uint256 private constant productTokenCap = UINT256_MAX;
+    Market.MarketInfo public marketMasterData;
 
 
     function setUp() public {
@@ -37,18 +38,30 @@ contract MarketTest is Test {
 
     function testSaleAndVesting() public {
         // set-up vesting template in market contract
-        market.deployMarket(1, 1, 100, 10e4, block.timestamp, 1 weeks, 16 weeks, 1 weeks, true, true);
-        /*    function deployMarket(uint256 _price,
-                       uint256 _minOrderSize,
-                       uint256 _maxOrderSize,
-                       uint256 _tgeRatio, 
-                       uint256 _start,
-                       uint256 _cliff,
-                       uint256 _duration,
-                       uint256 _slicePeriod,
-                       bool _revocable,
-                       bool _permisionLess
-        */
+
+        marketMasterData.tgeRatio = 10e4; // 10percent*100
+        marketMasterData.start = block.timestamp;
+        marketMasterData.cliff = 1 weeks;
+        marketMasterData.duration = 16 weeks;
+        marketMasterData.slicePeriod = 1 weeks;
+        marketMasterData.revocable = false;
+        marketMasterData.price = 1; // 1 USDT = 1 SHARK
+        marketMasterData.minOrderSize = 1; // min order 1 token
+        marketMasterData.maxOrderSize = 10e4; // max order 10k tokens
+        marketMasterData.permisionLess = true; // without whitelist
+
+        market.deployMarket( marketMasterData.price,
+                             marketMasterData.minOrderSize,
+                             marketMasterData.maxOrderSize,
+                             marketMasterData.tgeRatio,
+                             marketMasterData.start,
+                             marketMasterData.cliff,
+                             marketMasterData.duration,
+                             marketMasterData.slicePeriod,
+                             marketMasterData.revocable,
+                             marketMasterData.permisionLess 
+                            );
+
         // buy tokens from market contract
         //buy(uint256 _market, uint256 _amount, address _benefeciary) 
         usdc.approve(address(market), market.calculateOrderPrice(0, 10e4));
@@ -67,7 +80,7 @@ contract MarketTest is Test {
     }
 
     function testWhiteListSale() public {
-        
+
     }
 
 }
