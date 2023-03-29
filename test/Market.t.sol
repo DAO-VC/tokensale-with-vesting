@@ -37,7 +37,7 @@ contract MarketTest is Test {
 
     function testSaleAndVesting() public {
         // set-up vesting template in market contract
-        market.deployMarket();
+        market.deployMarket(1, 1, 100, 10e4, block.timestamp, 1 weeks, 16 weeks, 1 weeks, true, true);
         /*    function deployMarket(uint256 _price,
                        uint256 _minOrderSize,
                        uint256 _maxOrderSize,
