@@ -34,7 +34,8 @@ contract MarketTest is Test {
         productToken.transfer(address(productTreasury), productTokenCap);
         console.log("Treasury balance", productToken.balanceOf(address(productTreasury)));
         // market
-        market = new Market(address(usdc), address(productTreasury));
+        market = new Market(address(usdc), address(productTreasury), address(this));
+        productTreasury.transferOwnership(address(market));
         console.log("Market init ok", address(market));
 
     }

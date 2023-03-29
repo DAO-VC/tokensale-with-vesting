@@ -34,10 +34,12 @@ contract Market is AccessControl {
     mapping(uint256 => MarketInfo) markets;
 
     constructor(address _currency, 
-                address _productTreasury){
+                address _productTreasury,
+                address _currencyTreasury){
                     _setupRole(OPERATOR, msg.sender);
                     currency = IERC20(_currency);
                     productTreasury = ITreasury(_productTreasury);
+                    currencyTreasury = _currencyTreasury;
                     //currency = IERC20(currency);
                     marketsCount = 0;
 
@@ -88,7 +90,7 @@ contract Market is AccessControl {
 
     function buy(uint256 _market, uint256 _amount, address _benefeciary) public {
         require(marketsCount > _market, "Incorect market");
-        require(markets[_market].minOrderSize >= _amount && markets[_market].maxOrderSize <= _amount, "Min or max order size limit");
+        //require(markets[_market].minOrderSize >= _amount && markets[_market].maxOrderSize <= _amount, "Min or max order size limit");
         currency.transferFrom(msg.sender, currencyTreasury, _amount * markets[_market].price);
         (uint256 tgeAmount, uint256 vestingAmount) = calculateOrderSize(_market, _amount);
         productTreasury.withdrawTo(tgeAmount, _benefeciary);
