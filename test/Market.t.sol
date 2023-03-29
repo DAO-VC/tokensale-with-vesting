@@ -55,8 +55,19 @@ contract MarketTest is Test {
         market.buy(0, 10e4, address(this));
         // check tge tokens
         console.log(productToken.balanceOf(address(this)));
-        // check vesting calendar
+        // check vesting calendar for N periods
+        vm.warp(block.timestamp + duration + 1);
+        market.claimForAdress(address(this));
+        // end vesting calendar claiming
 
+    }
+
+    function testTeamVesting() public {
+
+    }
+
+    function testWhiteListSale() public {
+        
     }
 
 }
