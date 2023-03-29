@@ -45,7 +45,7 @@ contract MarketTest is Test {
         marketMasterData.duration = 16 weeks;
         marketMasterData.slicePeriod = 1 weeks;
         marketMasterData.revocable = false;
-        marketMasterData.price = 1; // 1 USDT = 1 SHARK
+        marketMasterData.price = 1; // price = price*1000, thats means price = 1 eq price = 0.001 
         marketMasterData.minOrderSize = 1; // min order 1 token
         marketMasterData.maxOrderSize = 10e4; // max order 10k tokens
         marketMasterData.permisionLess = true; // without whitelist
@@ -69,8 +69,12 @@ contract MarketTest is Test {
         // check tge tokens
         console.log(productToken.balanceOf(address(this)));
         // check vesting calendar for N periods
-        vm.warp(block.timestamp + duration + 1);
-        market.claimForAdress(address(this));
+        for (uint256 index = 0; index < ((marketMasterData.duration - marketMasterData.cliff) / marketMasterData.slicePeriod); index++) {
+            vm.warp(block.timestamp + ((index + 1)* marketMasterData.slicePeriod));
+            //market.claimForAdress(address(this));
+            console.log("Avaible for claim:");
+        }
+
         // end vesting calendar claiming
 
     }
