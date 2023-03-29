@@ -13,10 +13,10 @@ contract MarketTest is Test {
     address constant USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48; // USDT = 0xdAC17F958D2ee523a2206206994597C13D831ec7; // DAI 0x6B175474E89094C44Da98b954EedeAC495271d0F;//
     // dev: quote asset for testing tokensale on mainnet is WETH
     address constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
-    address private constant USDC_WHALE = 0xF977814e90dA44bFA03b6295A0616a897441aceC; // binance account with 3 billions USDC
+    address private constant USDC_WHALE = 0x756D64Dc5eDb56740fC617628dC832DDBCfd373c; // binance account with 3 billions USDC
     IERC20 private constant usdc = IERC20(USDC);
     IERC20 public productToken; // will deploy in setUP
-    uint256 private constant productTokenCap = UINT256_MAX;
+    uint256 private constant productTokenCap = 10e6 * 10e18;
     Market.MarketInfo public marketMasterData;
 
 
@@ -24,22 +24,26 @@ contract MarketTest is Test {
         // ---- INIT Contracts (product, currency, treasury, market) ----
         // currency
         vm.startPrank(USDC_WHALE);
-        usdc.transfer(address(this), 5000 * 1e6);
+        usdc.transfer(address(this), 5000 * 10e6);
         vm.stopPrank();
         // product
         productToken = new ProductToken(productTokenCap);
         // treasury
         productTreasury = new Treasury(address(productToken));
+        console.log("Treasury init ok", address(productTreasury));
         productToken.transfer(address(productTreasury), productTokenCap);
+        console.log("Treasury balance", productToken.balanceOf(address(productTreasury)));
         // market
         market = new Market(address(usdc), address(productTreasury));
+        console.log("Market init ok", address(market));
 
     }
 
     function testSaleAndVesting() public {
         // set-up vesting template in market contract
 
-        marketMasterData.tgeRatio = 10e4; // 10percent*100
+
+        marketMasterData.tgeRatio = 10000; // 10.000 %
         marketMasterData.start = block.timestamp;
         marketMasterData.cliff = 1 weeks;
         marketMasterData.duration = 16 weeks;
@@ -47,11 +51,13 @@ contract MarketTest is Test {
         marketMasterData.revocable = false;
         marketMasterData.price = 1; // price = price*1000, thats means price = 1 eq price = 0.001 
         marketMasterData.minOrderSize = 1; // min order 1 token
-        marketMasterData.maxOrderSize = 10e4; // max order 10k tokens
+        marketMasterData.maxOrderSize = 10e10; // max order 10k tokens
         marketMasterData.permisionLess = true; // without whitelist
 
         deployMarket(marketMasterData);
-        buyAtMarket(0, 10e4); // marketId, tokens to buy
+        console.log("New market deployed");
+        buyAtMarket(0, 10e3); // marketId, tokens to buy
+        console.log("Bu");
 
         // check vesting calendar for N periods
         for (uint256 index = 0; index < ((marketMasterData.duration - marketMasterData.cliff) / marketMasterData.slicePeriod); index++) {
@@ -59,7 +65,7 @@ contract MarketTest is Test {
         }
 
     }
-
+/*
     function testTeamVesting() public {
 
         // deployMarkets 
@@ -76,7 +82,7 @@ contract MarketTest is Test {
         // checkVesting
 
     }
-
+*/
     function deployMarket(Market.MarketInfo memory _data) public {
                 market.deployMarket(    _data.price,
                                         _data.minOrderSize,
@@ -101,7 +107,7 @@ contract MarketTest is Test {
         // buy tokens from market contract
         //buy(uint256 _market, uint256 _amount, address _benefeciary) 
         usdc.approve(address(market), market.calculateOrderPrice(_market, _amount));
-        market.buy(0, 10e4, address(this));
+        market.buy(0, _amount, address(this));
         // check tge tokens
         console.log(productToken.balanceOf(address(this)));
     }

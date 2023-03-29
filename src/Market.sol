@@ -1,5 +1,4 @@
-// contracts/Market.sol
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.17;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
@@ -104,8 +103,6 @@ contract Market is AccessControl {
                                             markets[_market].slicePeriod, 
                                             markets[_market].revocable,
                                             _amount);
-
-
     }
 
     function calculateOrderSize(uint256 _market, uint256 _amount) public view returns(uint256 _tgeAmount, uint256 _vestingAmount) {
@@ -121,7 +118,7 @@ contract Market is AccessControl {
         _price = _amount * markets[_market].price;
     }
 
-    
+    // @dev call getIndexCount, and claim in loop for all indexes
     function claimForIndex(uint256 _index) public {
             bytes32 vestingCalendarId = productTreasury.computeVestingScheduleIdForAddressAndIndex(msg.sender, _index);
             uint256 avaibleToClaim = productTreasury.computeReleasableAmount(vestingCalendarId);
