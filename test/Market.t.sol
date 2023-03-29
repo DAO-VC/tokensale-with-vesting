@@ -62,9 +62,18 @@ contract MarketTest is Test {
 
     function testTeamVesting() public {
 
+        // deployMarkets 
+        // migrateUser
+        // checkVestingCalendar
+
     }
 
     function testWhiteListSale() public {
+
+        // deployMarket
+        // addWhitelist
+        // buy
+        // checkVesting
 
     }
 
@@ -89,7 +98,7 @@ contract MarketTest is Test {
     }
 
     function buyAtMarket(uint256 _market, uint256 _amount) public {
-                // buy tokens from market contract
+        // buy tokens from market contract
         //buy(uint256 _market, uint256 _amount, address _benefeciary) 
         usdc.approve(address(market), market.calculateOrderPrice(_market, _amount));
         market.buy(0, 10e4, address(this));
