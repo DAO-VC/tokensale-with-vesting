@@ -6,8 +6,9 @@ import "../src/Treasury.sol";
 import "../src/Market.sol";
 
 contract DeployScript is Script {
-    address constant CurrencyToken = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
-    address constant ProductToken = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
+    // GOERLI ONLY
+    address constant CurrencyToken = 0x37bEe9DAeCb30cd44305FF76FcDD44E471244eFa; //USD with unlimit mint
+    address constant ProductToken = 0x7b8d1D0CA2d679ca8ffd37491C90b066d4511c12; //SHARK with unlimit mint
     Treasury public treasury;
     Market public market;
 

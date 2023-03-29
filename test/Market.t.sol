@@ -12,10 +12,10 @@ contract MarketTest is Test {
     // dev: any erc20 token for testing vesting calendar on mainnet forking
     address constant USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48; // USDT = 0xdAC17F958D2ee523a2206206994597C13D831ec7; // DAI 0x6B175474E89094C44Da98b954EedeAC495271d0F;//
     // dev: quote asset for testing tokensale on mainnet is WETH
-    //address constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+    address constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
     address private constant USDC_WHALE = 0xF977814e90dA44bFA03b6295A0616a897441aceC; // binance account with 3 billions USDC
     IERC20 private constant usdc = IERC20(USDC);
-    IERC20 public productToken;
+    IERC20 public productToken; // will deploy in setUP
     uint256 private constant productTokenCap = UINT256_MAX;
     Market.MarketInfo public marketMasterData;
 
@@ -50,32 +50,13 @@ contract MarketTest is Test {
         marketMasterData.maxOrderSize = 10e4; // max order 10k tokens
         marketMasterData.permisionLess = true; // without whitelist
 
-        market.deployMarket( marketMasterData.price,
-                             marketMasterData.minOrderSize,
-                             marketMasterData.maxOrderSize,
-                             marketMasterData.tgeRatio,
-                             marketMasterData.start,
-                             marketMasterData.cliff,
-                             marketMasterData.duration,
-                             marketMasterData.slicePeriod,
-                             marketMasterData.revocable,
-                             marketMasterData.permisionLess 
-                            );
+        deployMarket(marketMasterData);
+        buyAtMarket(0, 10e4); // marketId, tokens to buy
 
-        // buy tokens from market contract
-        //buy(uint256 _market, uint256 _amount, address _benefeciary) 
-        usdc.approve(address(market), market.calculateOrderPrice(0, 10e4));
-        market.buy(0, 10e4, address(this));
-        // check tge tokens
-        console.log(productToken.balanceOf(address(this)));
         // check vesting calendar for N periods
         for (uint256 index = 0; index < ((marketMasterData.duration - marketMasterData.cliff) / marketMasterData.slicePeriod); index++) {
-            vm.warp(block.timestamp + ((index + 1)* marketMasterData.slicePeriod));
-            //market.claimForAdress(address(this));
-            console.log("Avaible for claim:");
+            checkVesting(block.timestamp + ((index + 1)* marketMasterData.slicePeriod));
         }
-
-        // end vesting calendar claiming
 
     }
 
@@ -85,6 +66,35 @@ contract MarketTest is Test {
 
     function testWhiteListSale() public {
 
+    }
+
+    function deployMarket(Market.MarketInfo memory _data) public {
+                market.deployMarket(    _data.price,
+                                        _data.minOrderSize,
+                                        _data.maxOrderSize,
+                                        _data.tgeRatio,
+                                        _data.start,
+                                        _data.cliff,
+                                        _data.duration,
+                                        _data.slicePeriod,
+                                        _data.revocable,
+                                        _data.permisionLess 
+                                        );
+    }
+
+    function checkVesting(uint256 _timestamp) public {
+            vm.warp(_timestamp);
+            //market.claimForAdress(address(this));
+            console.log("Avaible for claim:");
+    }
+
+    function buyAtMarket(uint256 _market, uint256 _amount) public {
+                // buy tokens from market contract
+        //buy(uint256 _market, uint256 _amount, address _benefeciary) 
+        usdc.approve(address(market), market.calculateOrderPrice(_market, _amount));
+        market.buy(0, 10e4, address(this));
+        // check tge tokens
+        console.log(productToken.balanceOf(address(this)));
     }
 
 }
