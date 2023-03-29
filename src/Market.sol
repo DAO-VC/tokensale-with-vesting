@@ -115,6 +115,11 @@ contract Market is AccessControl {
 
     }
 
+
+    function calculateOrderPrice(uint256 _market, uint256 _amount) public view returns( uint256 _price ) {
+        _price = _amount * markets[_market].price;
+    }
+
     /*
     function claimForAddressAndIndex() {
 
