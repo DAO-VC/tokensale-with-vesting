@@ -122,17 +122,27 @@ contract Market is AccessControl {
     }
 
     
-    function claimForAddressAndIndex(address _benefeciary, uint256 _index) public {
-            bytes32 vestingCalendarId = productTreasury.computeVestingScheduleIdForAddressAndIndex(address(this), _index);
+    function claimForAddressAndIndex(uint256 _index) public {
+            bytes32 vestingCalendarId = productTreasury.computeVestingScheduleIdForAddressAndIndex(msg.sender, _index);
             uint256 avaibleToClaim = productTreasury.computeReleasableAmount(vestingCalendarId);
             productTreasury.release(vestingCalendarId, avaibleToClaim);
 
     }
-/*
-    function claimForAddress() {
+
+    // @dev Use carful - O(n) function
+    function claimForAddress() public {
+            uint256 vestingScheduleCount = productTreasury.getVestingSchedulesCountByBeneficiary(msg.sender);
+            bytes32 vestingCalendarId;
+            uint256 avaibleToClaim;
+            for (uint256 calendarNumber = 0; calendarNumber < vestingScheduleCount; calendarNumber++) {
+                vestingCalendarId = productTreasury.computeVestingScheduleIdForAddressAndIndex(address(this), calendarNumber);
+                avaibleToClaim = productTreasury.computeReleasableAmount(vestingCalendarId);
+                productTreasury.release(vestingCalendarId, avaibleToClaim);
+            }
+
 
     }
-
+/*
     function getVestingScheduleForAddressAndIndex() {
 
     }
