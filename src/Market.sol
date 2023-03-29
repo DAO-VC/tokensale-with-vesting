@@ -5,7 +5,7 @@ pragma solidity ^0.8.17;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
-import "../src/treasury.sol";
+import "../src/ITreasury.sol";
 
 contract Market is AccessControl {
     using SafeERC20 for ERC20;
@@ -14,7 +14,7 @@ contract Market is AccessControl {
 
     IERC20 public currency;
 
-    Treasury public productTreasury;
+    ITreasury public productTreasury;
     address public currencyTreasury;
     uint256 public marketsCount;
 
@@ -122,7 +122,7 @@ contract Market is AccessControl {
     }
 
     
-    function claimForAddressAndIndex(uint256 _index) public {
+    function claimForIndex(uint256 _index) public {
             bytes32 vestingCalendarId = productTreasury.computeVestingScheduleIdForAddressAndIndex(msg.sender, _index);
             uint256 avaibleToClaim = productTreasury.computeReleasableAmount(vestingCalendarId);
             productTreasury.release(vestingCalendarId, avaibleToClaim);
@@ -130,7 +130,7 @@ contract Market is AccessControl {
     }
 
     // @dev Use carful - O(n) function
-    function claimForAddress() public {
+    function claim() public {
             uint256 vestingScheduleCount = productTreasury.getVestingSchedulesCountByBeneficiary(msg.sender);
             bytes32 vestingCalendarId;
             uint256 avaibleToClaim;
@@ -142,15 +142,22 @@ contract Market is AccessControl {
 
 
     }
-/*
-    function getVestingScheduleForAddressAndIndex() {
 
+    function getVestingScheduleForIndex(uint256 _index) public view returns(ITreasury.VestingSchedule memory) {
+        return productTreasury.getVestingScheduleByAddressAndIndex(msg.sender, _index);
     }
 
-    function getVestingSchedulesForAddress() {
-
+    function getVestingSchedules() public view returns(ITreasury.VestingSchedule[] memory){ 
+        uint256 vestingScheduleCount = productTreasury.getVestingSchedulesCountByBeneficiary(msg.sender);
+        ITreasury.VestingSchedule[] memory vestingSchedules = new ITreasury.VestingSchedule[](vestingScheduleCount);
+        for (uint256 calendarNumber = 0; calendarNumber < vestingScheduleCount; calendarNumber++) {
+                vestingSchedules[calendarNumber] = productTreasury.getVestingScheduleByAddressAndIndex(msg.sender, calendarNumber);
+                //vestingSchedules.push(vestingSchedule);
+        }
+        return vestingSchedules;
     }
-*/
+
+
 }
 
 

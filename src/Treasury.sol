@@ -12,7 +12,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 /**
  * @title Treasury for product
  */
-contract Treasury is Ownable, ReentrancyGuard{
+contract Treasury is Ownable, ReentrancyGuard {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
     struct VestingSchedule{
