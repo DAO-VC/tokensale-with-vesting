@@ -12,20 +12,51 @@ contract DeployScript is Script {
     address constant CurrencyTreasury = 0x9df1958eF717F27cE03719341dCBCf049da190B5; // My MM
     Treasury public treasury;
     Market public market;
+    Market.MarketInfo public marketMasterData;
 
-    function setUp() public {}
+    function setUp() public {
+        marketMasterData.tgeRatio = 10000; // 10.000 %
+        marketMasterData.start = block.timestamp;
+        marketMasterData.cliff = 1 weeks;
+        marketMasterData.duration = 16 weeks;
+        marketMasterData.slicePeriod = 1 weeks;
+        marketMasterData.revocable = false;
+        marketMasterData.price = 1; // price = price*1000, thats means price = 1 eq price = 0.001 
+        marketMasterData.minOrderSize = 1; // min order 1 token
+        marketMasterData.maxOrderSize = 10e10; // max order 10k tokens
+        marketMasterData.permisionLess = true; // without whitelist
 
-    function deployContracts() public {
-        string memory seedPhrase = vm.readFile(".secret");
-        uint256 privateKey = vm.deriveKey(seedPhrase, 0);
-        vm.startBroadcast(privateKey);
+    }
+
+    function run() public {
+        //string memory seedPhrase = vm.readFile(".secret");
+        //uint256 privateKey = vm.deriveKey(seedPhrase, 0);
+        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+        vm.startBroadcast(deployerPrivateKey);
         // deploy tresary and market
         treasury = new Treasury(ProductToken);
         market = new Market(CurrencyToken, address(treasury), CurrencyTreasury);
+        treasury.transferOwnership(address(market));
+        deployMarket(marketMasterData);
 
         vm.stopBroadcast();
     }
 
+    function deployMarket(Market.MarketInfo memory _data) public {
+                market.deployMarket(    _data.price,
+                                        _data.minOrderSize,
+                                        _data.maxOrderSize,
+                                        _data.tgeRatio,
+                                        _data.start,
+                                        _data.cliff,
+                                        _data.duration,
+                                        _data.slicePeriod,
+                                        _data.revocable,
+                                        _data.permisionLess 
+                                        );
+    }
+
+/*
     function deployWhiteList() public {
 
     }
@@ -45,6 +76,7 @@ contract DeployScript is Script {
     function deploySeedRound() public {
 
     }
+    */
 }
 // https://ethereum-blockchain-developer.com/2022-06-nft-truffle-hardhat-foundry/16-foundry-deployment/
 // forge script script/Deploy.s.sol:DeployScript --broadcast --verify --rpc-url ${GOERLI_RPC_URL}
