@@ -142,22 +142,27 @@ contract Market is AccessControl {
 
     }
 
-    function getVestingScheduleForIndex(uint256 _index) public view returns(ITreasury.VestingSchedule memory) {
-        return productTreasury.getVestingScheduleByAddressAndIndex(msg.sender, _index);
+    function getVestingScheduleForIndex(uint256 _index, address _benefeciary) public view returns(ITreasury.VestingSchedule memory) {
+        return productTreasury.getVestingScheduleByAddressAndIndex(_benefeciary, _index);
     }
 
     // @dev Use carful - O(n) function
-    function getVestingSchedules() public view returns(ITreasury.VestingSchedule[] memory){ 
-        uint256 vestingScheduleCount = productTreasury.getVestingSchedulesCountByBeneficiary(msg.sender);
+    function getVestingSchedules(address _benefeciary) public view returns(ITreasury.VestingSchedule[] memory){ 
+        uint256 vestingScheduleCount = productTreasury.getVestingSchedulesCountByBeneficiary(_benefeciary);
         ITreasury.VestingSchedule[] memory vestingSchedules = new ITreasury.VestingSchedule[](vestingScheduleCount);
         for (uint256 calendarNumber = 0; calendarNumber < vestingScheduleCount; calendarNumber++) {
-                vestingSchedules[calendarNumber] = productTreasury.getVestingScheduleByAddressAndIndex(msg.sender, calendarNumber);
+                vestingSchedules[calendarNumber] = productTreasury.getVestingScheduleByAddressAndIndex(_benefeciary, calendarNumber);
         }
         return vestingSchedules;
     }
 
     function getIndexCount() public view returns(uint256) {
         return productTreasury.getVestingSchedulesCountByBeneficiary(msg.sender);
+    }
+
+    function getMarketInfo(uint256 _index) public view returns(MarketInfo memory) {
+        return markets[_index];
+
     }
 
 
