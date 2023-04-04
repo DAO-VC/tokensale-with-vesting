@@ -29,6 +29,17 @@ contract DeployRoundsScript is Script {
         deployNewRound(40000, 0 weeks, 24 weeks, 4 weeks, 20); //Public
         deployNewRound(25000, 0 weeks, 32 weeks, 4 weeks, 17); //Whitelist
 
+        deployNewRound(27000, 0 weeks, 32 weeks, 4 weeks, type(uint256).max); //Liquidity
+        deployNewRound(33000, 0 weeks, 8 weeks, 4 weeks, type(uint256).max); //Giveaways
+        deployNewRound(8300, 0 weeks, 44 weeks, 4 weeks, type(uint256).max); //Rewards
+        deployNewRound(5000, 0 weeks, 44 weeks, 4 weeks, type(uint256).max); //Marketing
+        deployNewRound(0, 44 weeks, 132 weeks, 4 weeks, type(uint256).max); //Advisors
+        deployNewRound(5000, 0 weeks, 64 weeks, 4 weeks, type(uint256).max); //Ecosystem & Partnership	
+        deployNewRound(0, 48 weeks, 144 weeks, 4 weeks, type(uint256).max); //Core Team	
+        deployNewRound(0, 16 weeks, 144 weeks, 4 weeks, type(uint256).max); //P2E In game liquidity	
+        
+
+
         vm.stopBroadcast();
     }
 
