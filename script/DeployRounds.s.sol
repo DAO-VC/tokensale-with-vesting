@@ -11,13 +11,8 @@ contract DeployRoundsScript is Script {
     IMarket.MarketInfo public marketMasterData;
 
     function setUp() public {
-        //marketMasterData.tgeRatio = 3000; // 3.000 %
         marketMasterData.start = block.timestamp;  // start imediatly
-        //marketMasterData.cliff = 12 weeks; // 3 monthes
-        //marketMasterData.duration = 60 weeks; // 12 monthes
-        //marketMasterData.slicePeriod = 4 weeks; // 1 month
         marketMasterData.revocable = false;
-        //marketMasterData.price = 10; // price = price*1000, thats means price = 1 eq price = 0.1 
         marketMasterData.minOrderSize = 1; // min order 1 token
         marketMasterData.maxOrderSize = 10e10; // max order // unlim 
         marketMasterData.permisionLess = true; // without whitelist
