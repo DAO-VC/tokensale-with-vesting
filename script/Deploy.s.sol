@@ -15,13 +15,13 @@ contract DeployScript is Script {
     Market.MarketInfo public marketMasterData;
 
     function setUp() public {
-        marketMasterData.tgeRatio = 10000; // 10.000 %
+        marketMasterData.tgeRatio = 3000; // 3.000 %
         marketMasterData.start = block.timestamp;
-        marketMasterData.cliff = 1 weeks;
-        marketMasterData.duration = 16 weeks;
-        marketMasterData.slicePeriod = 1 weeks;
+        marketMasterData.cliff = 12 weeks; // 3 monthes
+        marketMasterData.duration = 48 weeks; // 12 monthes
+        marketMasterData.slicePeriod = 4 weeks; // 1 month
         marketMasterData.revocable = false;
-        marketMasterData.price = 1; // price = price*1000, thats means price = 1 eq price = 0.001 
+        marketMasterData.price = 10; // price = price*1000, thats means price = 1 eq price = 0.001 
         marketMasterData.minOrderSize = 1; // min order 1 token
         marketMasterData.maxOrderSize = 10e10; // max order 10k tokens
         marketMasterData.permisionLess = true; // without whitelist
