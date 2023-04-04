@@ -117,7 +117,7 @@ contract Market is AccessControl {
 
 
     function calculateOrderPrice(uint256 _market, uint256 _amount) public view returns( uint256 _price ) {
-        _price = _amount * markets[_market].price / 1e3;
+        _price = _amount * markets[_market].price / 1e3; // price = price*1000, 0.01 = 10
     }
 
     // @dev call getIndexCount, and claim in loop for all indexes

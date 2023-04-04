@@ -32,7 +32,7 @@ contract MarketTest is Test {
         productTreasury = new Treasury(address(productToken));
         console.log("Treasury init ok", address(productTreasury));
         productToken.transfer(address(productTreasury), productTokenCap);
-        console.log("Treasury balance", productToken.balanceOf(address(productTreasury)));
+        console.log("Treasury balance of product token", productToken.balanceOf(address(productTreasury)));
         // market
         market = new Market(address(usdc), address(productTreasury), address(this));
         productTreasury.transferOwnership(address(market));
@@ -44,26 +44,48 @@ contract MarketTest is Test {
         // set-up vesting template in market contract
 
 
-        marketMasterData.tgeRatio = 10000; // 10.000 %
+        marketMasterData.tgeRatio = 3000; // 10.000 %
         marketMasterData.start = block.timestamp;
-        marketMasterData.cliff = 1 weeks;
-        marketMasterData.duration = 16 weeks;
-        marketMasterData.slicePeriod = 1 weeks;
+        marketMasterData.cliff = 12 weeks;
+        marketMasterData.duration = 60 weeks;
+        marketMasterData.slicePeriod = 4 weeks;
         marketMasterData.revocable = false;
-        marketMasterData.price = 1; // price = price*1000, thats means price = 1 eq price = 0.001 
+        marketMasterData.price = 10; // price = price*1000, thats means price = 1 eq price = 0.001 
         marketMasterData.minOrderSize = 1; // min order 1 token
         marketMasterData.maxOrderSize = 10e10; // max order 10k tokens
         marketMasterData.permisionLess = true; // without whitelist
 
         deployMarket(marketMasterData);
         console.log("New market deployed");
+        console.log("User balance of product token before buying 10k tokens", productToken.balanceOf(address(this)));
         buyAtMarket(0, 10e3); // marketId, tokens to buy
-        console.log("Bu");
+        //console.log("Bu");
+        console.log("Timestamp:", block.timestamp);
+        console.log("Order price", market.calculateOrderPrice(0, 10e3));
+        console.log("Slice period", marketMasterData.slicePeriod);
 
         // check vesting calendar for N periods
-        for (uint256 index = 0; index < ((marketMasterData.duration - marketMasterData.cliff) / marketMasterData.slicePeriod); index++) {
-            checkVesting(block.timestamp + ((index + 1)* marketMasterData.slicePeriod));
-        }
+        //for (uint256 index = 0; index < ((marketMasterData.duration - marketMasterData.cliff) / marketMasterData.slicePeriod); index++) {
+            //checkVesting(0, block.timestamp + ((index + 1)* marketMasterData.slicePeriod));
+        //}
+        console.log("User balance of product token before vesting", productToken.balanceOf(address(this)));
+        checkVesting(0, marketMasterData.start + marketMasterData.cliff);
+        checkVesting(0, marketMasterData.start + marketMasterData.cliff + 1 * marketMasterData.slicePeriod);
+        checkVesting(0, marketMasterData.start + marketMasterData.cliff + 2 * marketMasterData.slicePeriod);
+        checkVesting(0, marketMasterData.start + marketMasterData.cliff + 3 * marketMasterData.slicePeriod);
+        checkVesting(0, marketMasterData.start + marketMasterData.cliff + 4 * marketMasterData.slicePeriod);
+        checkVesting(0, marketMasterData.start + marketMasterData.cliff + 5 * marketMasterData.slicePeriod);
+        checkVesting(0, marketMasterData.start + marketMasterData.cliff + 6 * marketMasterData.slicePeriod);
+        checkVesting(0, marketMasterData.start + marketMasterData.cliff + 7 * marketMasterData.slicePeriod);
+        checkVesting(0, marketMasterData.start + marketMasterData.cliff + 8 * marketMasterData.slicePeriod);
+        checkVesting(0, marketMasterData.start + marketMasterData.cliff + 9 * marketMasterData.slicePeriod);
+        checkVesting(0, marketMasterData.start + marketMasterData.cliff + 10 * marketMasterData.slicePeriod);
+        checkVesting(0, marketMasterData.start + marketMasterData.cliff + 11 * marketMasterData.slicePeriod);
+        checkVesting(0, marketMasterData.start + marketMasterData.cliff + 12 * marketMasterData.slicePeriod);
+
+
+        console.log("User balance of product token after vesting", productToken.balanceOf(address(this)));
+
 
     }
 /*
@@ -98,15 +120,23 @@ contract MarketTest is Test {
                                         );
     }
 
-    function checkVesting(uint256 _timestamp) public {
+    function checkVesting(uint256 _market, uint256 _timestamp) public {
             vm.warp(_timestamp);
+            console.log("Timestamp:", block.timestamp);
+            ITreasury.VestingSchedule memory userInfoForRound = market.getVestingScheduleForIndex(_market, address(this));
+            //bytes32 vestingCalendarId = productTreasury.computeVestingScheduleIdForAddressAndIndex(address(this), 0);
+            //uint256 avaibleToClaim = productTreasury.computeReleasableAmount(vestingCalendarId);
+            console.log("Avaible for claim:", userInfoForRound.released);
+            market.claimForIndex(_market);
+            //console.log("Treasury balance of product token", productToken.balanceOf(address(productTreasury)));
             //market.claimForAdress(address(this));
-            console.log("Avaible for claim:");
+            
     }
 
     function buyAtMarket(uint256 _market, uint256 _amount) public {
         // buy tokens from market contract
         //buy(uint256 _market, uint256 _amount, address _benefeciary) 
+        console.log("Price for 10k tokens", market.calculateOrderPrice(_market, _amount));
         usdc.approve(address(market), market.calculateOrderPrice(_market, _amount));
         market.buy(0, _amount, address(this));
         // check tge tokens
