@@ -126,7 +126,8 @@ contract MarketTest is Test {
             ITreasury.VestingSchedule memory userInfoForRound = market.getVestingScheduleForIndex(_market, address(this));
             //bytes32 vestingCalendarId = productTreasury.computeVestingScheduleIdForAddressAndIndex(address(this), 0);
             //uint256 avaibleToClaim = productTreasury.computeReleasableAmount(vestingCalendarId);
-            console.log("Avaible for claim:", userInfoForRound.released);
+            console.log("Alredy claimed:", userInfoForRound.released);
+            console.log("Avaible to claim", market.avaibleToClaim(_market, address(this)));
             market.claimForIndex(_market);
             //console.log("Treasury balance of product token", productToken.balanceOf(address(productTreasury)));
             //market.claimForAdress(address(this));

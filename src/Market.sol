@@ -120,11 +120,16 @@ contract Market is AccessControl {
         _price = _amount * markets[_market].price / 1e3; // price = price*1000, 0.01 = 10
     }
 
+    function avaibleToClaim(uint256 _index, address _benefeciary) public view returns( uint256 _avaible ) {
+        bytes32 vestingCalendarId = productTreasury.computeVestingScheduleIdForAddressAndIndex(_benefeciary, _index);
+        _avaible = productTreasury.computeReleasableAmount(vestingCalendarId);
+    }
+
     // @dev call getIndexCount, and claim in loop for all indexes
     function claimForIndex(uint256 _index) public {
             bytes32 vestingCalendarId = productTreasury.computeVestingScheduleIdForAddressAndIndex(msg.sender, _index);
-            uint256 avaibleToClaim = productTreasury.computeReleasableAmount(vestingCalendarId);
-            productTreasury.release(vestingCalendarId, avaibleToClaim);
+            uint256 avaibleForClaim = productTreasury.computeReleasableAmount(vestingCalendarId);
+            productTreasury.release(vestingCalendarId, avaibleForClaim);
 
     }
 
@@ -132,11 +137,11 @@ contract Market is AccessControl {
     function claim() public {
             uint256 vestingScheduleCount = productTreasury.getVestingSchedulesCountByBeneficiary(msg.sender);
             bytes32 vestingCalendarId;
-            uint256 avaibleToClaim;
+            uint256 avaibleForClaim;
             for (uint256 calendarNumber = 0; calendarNumber < vestingScheduleCount; calendarNumber++) {
                 vestingCalendarId = productTreasury.computeVestingScheduleIdForAddressAndIndex(address(this), calendarNumber);
-                avaibleToClaim = productTreasury.computeReleasableAmount(vestingCalendarId);
-                productTreasury.release(vestingCalendarId, avaibleToClaim);
+                avaibleForClaim = productTreasury.computeReleasableAmount(vestingCalendarId);
+                productTreasury.release(vestingCalendarId, avaibleForClaim);
             }
 
 
