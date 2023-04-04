@@ -91,7 +91,7 @@ contract Market is AccessControl {
     function buy(uint256 _market, uint256 _amount, address _benefeciary) public {
         require(marketsCount > _market, "Incorect market");
         //require(markets[_market].minOrderSize >= _amount && markets[_market].maxOrderSize <= _amount, "Min or max order size limit");
-        currency.transferFrom(msg.sender, currencyTreasury, _amount * markets[_market].price);
+        currency.transferFrom(msg.sender, currencyTreasury, calculateOrderPrice(_market, _amount));
         (uint256 tgeAmount, uint256 vestingAmount) = calculateOrderSize(_market, _amount);
         productTreasury.withdrawTo(tgeAmount, _benefeciary);
         _migrateUser(_market, vestingAmount, _benefeciary);
@@ -117,7 +117,7 @@ contract Market is AccessControl {
 
 
     function calculateOrderPrice(uint256 _market, uint256 _amount) public view returns( uint256 _price ) {
-        _price = _amount * markets[_market].price;
+        _price = _amount * markets[_market].price / 1e3;
     }
 
     // @dev call getIndexCount, and claim in loop for all indexes
