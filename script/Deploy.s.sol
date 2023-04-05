@@ -7,10 +7,19 @@ import "../src/Market.sol";
 
 contract DeployScript is Script {
     // GOERLI ONLY
-    address constant CurrencyToken = 0x37bEe9DAeCb30cd44305FF76FcDD44E471244eFa; //USD with unlimit mint
-    address constant ProductToken = 0x7b8d1D0CA2d679ca8ffd37491C90b066d4511c12; //SHARK with unlimit mint
+    //address constant CurrencyToken = 0x37bEe9DAeCb30cd44305FF76FcDD44E471244eFa; //USD with unlimit mint
+    //address constant ProductToken = 0x7b8d1D0CA2d679ca8ffd37491C90b066d4511c12; //SHARK with unlimit mint
+    //address constant CurrencyTreasury = 0x9df1958eF717F27cE03719341dCBCf049da190B5; // My MM
+
+    // Binance Testnet
+
+    
+    address constant CurrencyToken = 0xBBf54eD533d1df95C201d0AFd859C1707F7857aB; //USD with unlimit mint
+    address constant ProductToken = 0x4fBd6fbd58045113BA7aDf02034e0FcaA3e85396; //SHARK with unlimit mint
     address constant CurrencyTreasury = 0x9df1958eF717F27cE03719341dCBCf049da190B5; // My MM
-    address constant ProductTreasury = 0xea0EcD6659BF79F6517602813346Cb1be80053AC;
+
+
+    //address constant ProductTreasury = 0xea0EcD6659BF79F6517602813346Cb1be80053AC;
 
     //ITreasury public treasury = ITreasury(ProductTreasury);
     Treasury public treasury;
