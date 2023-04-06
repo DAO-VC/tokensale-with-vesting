@@ -161,8 +161,8 @@ contract Market is AccessControl {
         return vestingSchedules;
     }
 
-    function getIndexCount() public view returns(uint256) {
-        return productTreasury.getVestingSchedulesCountByBeneficiary(msg.sender);
+    function getIndexCount(address _benefeciary) public view returns(uint256) {
+        return productTreasury.getVestingSchedulesCountByBeneficiary(_benefeciary);
     }
 
     function getMarketInfo(uint256 _index) public view returns(MarketInfo memory) {
