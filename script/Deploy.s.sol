@@ -52,7 +52,8 @@ contract DeployScript is Script {
         treasury.transferOwnership(address(market));
         //deployMarket(marketMasterData);
         // tge, cliff, duration, slice, price
-        deployNewRound(3000, 12 weeks, 60 weeks, 4 weeks, 10); //Seed
+        //deployNewRound(3000, 12 weeks, 60 weeks, 4 weeks, 10); //Seed for prod
+        deployNewRound(3000, 12 minutes, 60 minutes, 4 minutes, 10); //Seed for front test
         deployNewRound(5000, 12 weeks, 60 weeks, 4 weeks, 12); //Private
         deployNewRound(7000, 12 weeks, 60 weeks, 4 weeks, 14); //Strategic
         deployNewRound(40000, 0 weeks, 24 weeks, 4 weeks, 20); //Public
