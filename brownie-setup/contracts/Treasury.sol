@@ -50,7 +50,7 @@ contract Treasury is Ownable, ReentrancyGuard {
     * @dev Reverts if no vesting schedule matches the passed identifier.
     */
     modifier onlyIfVestingScheduleExists(bytes32 vestingScheduleId) {
-        require(vestingSchedules[vestingScheduleId].initialized == true, "VestingSchedule is not initialized");
+        require(vestingSchedules[vestingScheduleId].initialized, "VestingSchedule is not initialized");
         _;
     }
 
@@ -58,8 +58,8 @@ contract Treasury is Ownable, ReentrancyGuard {
     * @dev Reverts if the vesting schedule does not exist or has been revoked.
     */
     modifier onlyIfVestingScheduleNotRevoked(bytes32 vestingScheduleId) {
-        require(vestingSchedules[vestingScheduleId].initialized == true, "VestingSchedule is not initialized");
-        require(vestingSchedules[vestingScheduleId].revoked == false, "VestingSchedule is revoked");
+        require(vestingSchedules[vestingScheduleId].initialized, "VestingSchedule is not initialized");
+        require(!vestingSchedules[vestingScheduleId].revoked, "VestingSchedule is revoked");
         _;
     }
 
@@ -330,7 +330,7 @@ contract Treasury is Ownable, ReentrancyGuard {
     view
     returns(uint256){
         uint256 currentTime = getCurrentTime();
-        if ((currentTime < vestingSchedule.cliff) || vestingSchedule.revoked == true) {
+        if ((currentTime < vestingSchedule.cliff) || vestingSchedule.revoked) {
             return 0;
         } else if (currentTime >= vestingSchedule.start + vestingSchedule.duration) {
             return vestingSchedule.amountTotal - vestingSchedule.released;

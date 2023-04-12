@@ -49,15 +49,15 @@ contract Market is AccessControl {
     // Market selling a structural note contains treasury notes in a predetermined ratio 
     // 
     function deployMarket(uint256 _price,
-                       uint256 _minOrderSize,
-                       uint256 _maxOrderSize,
-                       uint256 _tgeRatio, 
-                       uint256 _start,
-                       uint256 _cliff,
-                       uint256 _duration,
-                       uint256 _slicePeriod,
-                       bool _revocable,
-                       bool _permisionLess
+                        uint256 _minOrderSize,
+                        uint256 _maxOrderSize,
+                        uint256 _tgeRatio, 
+                        uint256 _start,
+                        uint256 _cliff,
+                        uint256 _duration,
+                        uint256 _slicePeriod,
+                        bool _revocable,
+                        bool _permisionLess
                        ) public {
         require(hasRole(OPERATOR, msg.sender), "Caller is not an operator");
 
@@ -91,8 +91,9 @@ contract Market is AccessControl {
     function buy(uint256 _market, uint256 _amount, address _benefeciary) public {
         require(marketsCount > _market, "Incorect market");
         //require(markets[_market].minOrderSize >= _amount && markets[_market].maxOrderSize <= _amount, "Min or max order size limit");
-        currency.transferFrom(msg.sender, currencyTreasury, calculateOrderPrice(_market, _amount));
-        (uint256 tgeAmount, uint256 vestingAmount) = calculateOrderSize(_market, _amount);
+        (uint256 tgeAmount, uint256 vestingAmount) = calculateOrderSize(_market, _amount);        
+        currency.transferFrom(msg.sender, currencyTreasury, tgeAmount);
+        
         productTreasury.withdrawTo(tgeAmount, _benefeciary);
         _migrateUser(_market, vestingAmount, _benefeciary);
     }
@@ -151,7 +152,7 @@ contract Market is AccessControl {
         return productTreasury.getVestingScheduleByAddressAndIndex(_benefeciary, _index);
     }
 
-    // @dev Use carful - O(n) function
+    // @dev Use careful - O(n) function
     function getVestingSchedules(address _benefeciary) public view returns(ITreasury.VestingSchedule[] memory){ 
         uint256 vestingScheduleCount = productTreasury.getVestingSchedulesCountByBeneficiary(_benefeciary);
         ITreasury.VestingSchedule[] memory vestingSchedules = new ITreasury.VestingSchedule[](vestingScheduleCount);
