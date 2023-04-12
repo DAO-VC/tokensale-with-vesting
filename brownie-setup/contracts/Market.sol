@@ -4,12 +4,13 @@ pragma solidity ^0.8.17;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
-import "../src/interfaces/ITreasury.sol";
+import "../interfaces/ITreasury.sol";
 
 contract Market is AccessControl {
     using SafeERC20 for ERC20;
 
     bytes32 public constant OPERATOR = keccak256("OPERATOR");
+    bytes32 public constant WHITELISTED_ADDRESS = keccak256("WHITELISTED_ADDRESS");
 
     IERC20 public currency;
 
@@ -27,8 +28,7 @@ contract Market is AccessControl {
         uint256 price; 
         uint256 minOrderSize;
         uint256 maxOrderSize;
-        bool permisionLess; // true = igniring whitelist
-        //mapping (address => bool) whitelist;
+        bool permissionLess; // true = igniring whitelist
     }
 
     mapping(uint256 => MarketInfo) markets;
@@ -37,27 +37,28 @@ contract Market is AccessControl {
                 address _productTreasury,
                 address _currencyTreasury){
                     _setupRole(OPERATOR, msg.sender);
+                    _setupRole(WHITELISTED_ADDRESS, msg.sender);
                     currency = IERC20(_currency);
                     productTreasury = ITreasury(_productTreasury);
                     currencyTreasury = _currencyTreasury;
-                    //currency = IERC20(currency);
                     marketsCount = 0;
 
     }
 
     // @dev
     // Market selling a structural note contains treasury notes in a predetermined ratio 
-    // 
+    //
+    // refactor to struct
     function deployMarket(uint256 _price,
-                        uint256 _minOrderSize,
-                        uint256 _maxOrderSize,
-                        uint256 _tgeRatio, 
-                        uint256 _start,
-                        uint256 _cliff,
-                        uint256 _duration,
-                        uint256 _slicePeriod,
-                        bool _revocable,
-                        bool _permisionLess
+                       uint256 _minOrderSize,
+                       uint256 _maxOrderSize,
+                       uint256 _tgeRatio, 
+                       uint256 _start,
+                       uint256 _cliff,
+                       uint256 _duration,
+                       uint256 _slicePeriod,
+                       bool _revocable,
+                       bool _permissionLess
                        ) public {
         require(hasRole(OPERATOR, msg.sender), "Caller is not an operator");
 
@@ -71,29 +72,31 @@ contract Market is AccessControl {
             _price,
             _minOrderSize,
             _maxOrderSize,
-            _permisionLess
+            _permissionLess
         );
         
         marketsCount += 1;
 
     }
 
-    function migrateUser(uint256 _market, uint256 _amount, address _benefeciary) public {
+    function migrateUser(uint256 _market, uint256 _amount, address _beneficiary) public {
         require(hasRole(OPERATOR, msg.sender), "Caller is not an operator");
         require(marketsCount > _market, "Incorect market");
-        require(markets[_market].minOrderSize >= _amount && markets[_market].maxOrderSize <= _amount, "Min or max order size limit");
+        require(markets[_market].minOrderSize <= _amount && markets[_market].maxOrderSize >= _amount, "Min or max order size limit");
 
         (uint256 tgeAmount, uint256 vestingAmount) = calculateOrderSize(_market, _amount);
-        productTreasury.withdrawTo(tgeAmount, _benefeciary);
-        _migrateUser(_market, vestingAmount, _benefeciary);
+        productTreasury.withdrawTo(tgeAmount, _beneficiary);
+        _migrateUser(_market, vestingAmount, _beneficiary);
     }
 
     function buy(uint256 _market, uint256 _amount, address _benefeciary) public {
         require(marketsCount > _market, "Incorect market");
-        //require(markets[_market].minOrderSize >= _amount && markets[_market].maxOrderSize <= _amount, "Min or max order size limit");
-        (uint256 tgeAmount, uint256 vestingAmount) = calculateOrderSize(_market, _amount);        
-        currency.transferFrom(msg.sender, currencyTreasury, tgeAmount);
-        
+        if (!markets[_market].permissionLess) {
+            require(hasRole(WHITELISTED_ADDRESS, _benefeciary), "User is not in white list");
+        }
+        require(markets[_market].minOrderSize >= _amount && markets[_market].maxOrderSize <= _amount, "Min or max order size limit");
+        currency.transferFrom(msg.sender, currencyTreasury, calculateOrderPrice(_market, _amount));
+        (uint256 tgeAmount, uint256 vestingAmount) = calculateOrderSize(_market, _amount);
         productTreasury.withdrawTo(tgeAmount, _benefeciary);
         _migrateUser(_market, vestingAmount, _benefeciary);
     }
@@ -111,7 +114,7 @@ contract Market is AccessControl {
     function calculateOrderSize(uint256 _market, uint256 _amount) public view returns(uint256 _tgeAmount, uint256 _vestingAmount) {
         require(marketsCount > _market, "Incorect market");
 
-        _tgeAmount = _amount * markets[_market].tgeRatio / 1e5; // 100*3725/1000000
+        _tgeAmount = _amount * markets[_market].tgeRatio / 1e6; // 100*3725/1000000
         _vestingAmount = _amount - _tgeAmount;
 
     }
@@ -134,7 +137,7 @@ contract Market is AccessControl {
 
     }
 
-    // @dev Use carful - O(n) function
+    // @dev Use careful - O(n) function
     function claim() public {
             uint256 vestingScheduleCount = productTreasury.getVestingSchedulesCountByBeneficiary(msg.sender);
             bytes32 vestingCalendarId;
@@ -162,8 +165,8 @@ contract Market is AccessControl {
         return vestingSchedules;
     }
 
-    function getIndexCount(address _benefeciary) public view returns(uint256) {
-        return productTreasury.getVestingSchedulesCountByBeneficiary(_benefeciary);
+    function getIndexCount() public view returns(uint256) {
+        return productTreasury.getVestingSchedulesCountByBeneficiary(msg.sender);
     }
 
     function getMarketInfo(uint256 _index) public view returns(MarketInfo memory) {
