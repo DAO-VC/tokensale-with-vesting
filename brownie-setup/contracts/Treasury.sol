@@ -183,7 +183,7 @@ contract Treasury is Ownable, ReentrancyGuard {
     * @notice Revokes the vesting schedule for given identifier.
     * @param vestingScheduleId the vesting schedule identifier
     */
-    function revoke(bytes32 vestingScheduleId)
+    function revoke(bytes32 vestingScheduleId) nonReentrant
         public
         onlyOwner
         onlyIfVestingScheduleNotRevoked(vestingScheduleId){
