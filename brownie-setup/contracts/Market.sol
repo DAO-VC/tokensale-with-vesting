@@ -94,7 +94,7 @@ contract Market is AccessControl {
         if (!markets[_market].permissionLess) {
             require(hasRole(WHITELISTED_ADDRESS, _benefeciary), "User is not in white list");
         }
-        require(markets[_market].minOrderSize >= _amount && markets[_market].maxOrderSize <= _amount, "Min or max order size limit");
+        require(markets[_market].minOrderSize <= _amount && markets[_market].maxOrderSize >= _amount, "Min or max order size limit");
         currency.transferFrom(msg.sender, currencyTreasury, calculateOrderPrice(_market, _amount));
         (uint256 tgeAmount, uint256 vestingAmount) = calculateOrderSize(_market, _amount);
         productTreasury.withdrawTo(tgeAmount, _benefeciary);
@@ -115,7 +115,7 @@ contract Market is AccessControl {
         require(marketsCount > _market, "Incorect market");
 
         _tgeAmount = _amount * markets[_market].tgeRatio / 1e6; // 100*3725/1000000
-        _vestingAmount = _amount - _tgeAmount;
+        _vestingAmount = _amount - _tgeAmount; // НАХУЯ ???
 
     }
 

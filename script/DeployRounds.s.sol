@@ -23,7 +23,7 @@ contract DeployRoundsScript is Script {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
         // tge, cliff, duration, slice, price
-        //deployNewRound(3000, 12 weeks, 60 weeks, 4 weeks, 10); //Seed
+        deployNewRound(3000, 12 weeks, 60 weeks, 4 weeks, 10); //Seed
         deployNewRound(5000, 12 weeks, 60 weeks, 4 weeks, 12); //Private
         deployNewRound(7000, 12 weeks, 60 weeks, 4 weeks, 14); //Strategic
         deployNewRound(40000, 0 weeks, 24 weeks, 4 weeks, 20); //Public
