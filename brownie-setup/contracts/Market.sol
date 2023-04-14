@@ -94,7 +94,7 @@ contract Market is AccessControl {
         if (!markets[_market].permissionLess) {
             require(hasRole(WHITELISTED_ADDRESS, _benefeciary), "User is not in white list");
         }
-        require(markets[_market].minOrderSize >= _amount && markets[_market].maxOrderSize <= _amount, "Min or max order size limit");
+        require(markets[_market].minOrderSize <= _amount && markets[_market].maxOrderSize >= _amount, "Min or max order size limit");
         currency.transferFrom(msg.sender, currencyTreasury, calculateOrderPrice(_market, _amount));
         (uint256 tgeAmount, uint256 vestingAmount) = calculateOrderSize(_market, _amount);
         productTreasury.withdrawTo(tgeAmount, _benefeciary);
@@ -108,13 +108,14 @@ contract Market is AccessControl {
                                             markets[_market].duration, 
                                             markets[_market].slicePeriod, 
                                             markets[_market].revocable,
-                                            _amount);
+                                            _amount,
+                                            _market);
     }
 
     function calculateOrderSize(uint256 _market, uint256 _amount) public view returns(uint256 _tgeAmount, uint256 _vestingAmount) {
         require(marketsCount > _market, "Incorect market");
 
-        _tgeAmount = _amount * markets[_market].tgeRatio / 1e6; // 100*3725/1000000
+        _tgeAmount = _amount * markets[_market].tgeRatio / 1e5;
         _vestingAmount = _amount - _tgeAmount;
 
     }
@@ -137,14 +138,19 @@ contract Market is AccessControl {
 
     }
 
+    event Log(string msg, uint256 data);
+    event LogBytes(string msg, bytes32 data);
     // @dev Use careful - O(n) function
     function claim() public {
             uint256 vestingScheduleCount = productTreasury.getVestingSchedulesCountByBeneficiary(msg.sender);
+            emit Log("vestingScheduleCount", vestingScheduleCount);
             bytes32 vestingCalendarId;
             uint256 avaibleForClaim;
             for (uint256 calendarNumber = 0; calendarNumber < vestingScheduleCount; calendarNumber++) {
-                vestingCalendarId = productTreasury.computeVestingScheduleIdForAddressAndIndex(address(this), calendarNumber);
+                vestingCalendarId = productTreasury.computeVestingScheduleIdForAddressAndIndex(msg.sender, calendarNumber);
+                emit LogBytes("vestingCalendarId", vestingCalendarId);
                 avaibleForClaim = productTreasury.computeReleasableAmount(vestingCalendarId);
+                emit Log("avaibleForClaim", avaibleForClaim);
                 productTreasury.release(vestingCalendarId, avaibleForClaim);
             }
 
