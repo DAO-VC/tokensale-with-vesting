@@ -33,6 +33,8 @@ contract Treasury is Ownable, ReentrancyGuard {
         uint256  released;
         // whether or not the vesting has been revoked
         bool revoked;
+        // round id
+        uint256 roundId;
     }
 
     // address of the ERC20 token
@@ -149,7 +151,8 @@ contract Treasury is Ownable, ReentrancyGuard {
         uint256 _duration,
         uint256 _slicePeriodSeconds,
         bool _revocable,
-        uint256 _amount
+        uint256 _amount,
+        uint256 marketId
     )
         public onlyOwner{
         require(
@@ -171,7 +174,8 @@ contract Treasury is Ownable, ReentrancyGuard {
             _revocable,
             _amount,
             0,
-            false
+            false,
+            marketId
         );
         vestingSchedulesTotalAmount = vestingSchedulesTotalAmount + _amount;
         vestingSchedulesIds.push(vestingScheduleId);

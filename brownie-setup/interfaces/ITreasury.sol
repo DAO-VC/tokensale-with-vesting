@@ -17,6 +17,7 @@ interface ITreasury {
         uint256 amountTotal;
         uint256 released;
         bool revoked;
+        uint256 roundId;
     }
 
     function computeNextVestingScheduleIdForHolder(address holder) external view returns (bytes32);
@@ -32,7 +33,8 @@ interface ITreasury {
         uint256 _duration,
         uint256 _slicePeriodSeconds,
         bool _revocable,
-        uint256 _amount
+        uint256 _amount,
+        uint256 roundId
     ) external;
     function getLastVestingScheduleForHolder(address holder) external view returns (VestingSchedule memory);
     function getToken() external view returns (address);

@@ -108,7 +108,8 @@ contract Market is AccessControl {
                                             markets[_market].duration, 
                                             markets[_market].slicePeriod, 
                                             markets[_market].revocable,
-                                            _amount);
+                                            _amount,
+                                            _market);
     }
 
     function calculateOrderSize(uint256 _market, uint256 _amount) public view returns(uint256 _tgeAmount, uint256 _vestingAmount) {
