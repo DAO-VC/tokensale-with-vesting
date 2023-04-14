@@ -15,6 +15,7 @@ interface ITreasury {
         uint256 slicePeriodSeconds;
         bool revocable;
         uint256 amountTotal;
+        uint256 initAmount;
         uint256 released;
         bool revoked;
         uint256 roundId;

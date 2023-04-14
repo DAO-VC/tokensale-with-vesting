@@ -29,6 +29,8 @@ contract Treasury is Ownable, ReentrancyGuard {
         bool  revocable;
         // total amount of tokens to be released at the end of the vesting
         uint256 amountTotal;
+        // initial buy amount
+        uint256 initAmount;
         // amount of tokens released
         uint256  released;
         // whether or not the vesting has been revoked
@@ -172,6 +174,7 @@ contract Treasury is Ownable, ReentrancyGuard {
             _duration,
             _slicePeriodSeconds,
             _revocable,
+            _amount,
             _amount,
             0,
             false,
