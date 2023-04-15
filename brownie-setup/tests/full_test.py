@@ -58,12 +58,18 @@ def test_flow(admin, usd_token, shark_token, treasury, market, user):
     assert balance == 988
     assert usd_token.balanceOf(admin) == 1000012e18
     assert shark_token.balanceOf(user) == 50e18
+
+    schedules = treasury.getVestingSchedulesCountByBeneficiary(user, {'from': admin})
+    schedule_id = treasury.computeVestingScheduleIdForAddressAndIndex(user, 0, {'from': admin})
+    v_schedule = treasury.getVestingSchedule(schedule_id, {'from': admin})
+    compute_unlock = treasury.computeReleasableAmount(schedule_id, {'from': admin})
+
     claim = market.claim({'from': user})
+
     assert shark_token.balanceOf(user) == 50e18
-5_000_000_000_000_000_000
 
 def deploy_new_round(_tge, _cliff, _duration, _slice, _price, market, admin):
-    start = 1
+    start = 1681477879
     revocable = False
     minOrderSize = 1
     maxOrderSize = 10e27
