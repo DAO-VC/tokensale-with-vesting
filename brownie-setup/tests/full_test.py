@@ -41,7 +41,7 @@ def test_flow(admin, usd_token, shark_token, treasury, market, user):
     week = 604800
 
     treasury.transferOwnership(market.address, {'from': admin})
-    deploy_new_round(3000, 12 * week, 60 * week, 4 * week, 10, market, admin)  # seed
+    deploy_new_round(_tge=3000, _cliff=12 * week, _duration=60 * week, _slice=4 * week, _price=10, market=market, admin=admin)  # seed
     deploy_new_round(5000, 12 * week, 60 * week, 4 * week, 12, market, admin)  # Privat
     deploy_new_round(7000, 12 * week, 60 * week, 4 * week, 14, market, admin)  # Strategic
     deploy_new_round(40000, 0 * week, 24 * week, 4 * week, 20, market, admin)  # Public
@@ -64,12 +64,18 @@ def test_flow(admin, usd_token, shark_token, treasury, market, user):
     v_schedule = treasury.getVestingSchedule(schedule_id, {'from': admin})
     compute_unlock = treasury.computeReleasableAmount(schedule_id, {'from': admin})
 
+    chain.sleep(24 * week)
+    release_amount = treasury.computeReleasableAmountTest(schedule_id, {'from': admin})
     claim = market.claim({'from': user})
+    v_schedule1 = treasury.getVestingSchedule(schedule_id, {'from': admin})
+
+
 
     assert shark_token.balanceOf(user) == 50e18
+    assert v_schedule.initialized
 
 def deploy_new_round(_tge, _cliff, _duration, _slice, _price, market, admin):
-    start = 1681477879
+    start = 1681650955
     revocable = False
     minOrderSize = 1
     maxOrderSize = 10e27

@@ -149,7 +149,7 @@ contract Market is AccessControl {
             bytes32 vestingCalendarId;
             uint256 avaibleForClaim;
             for (uint256 calendarNumber = 0; calendarNumber < vestingScheduleCount; calendarNumber++) {
-                vestingCalendarId = productTreasury.computeVestingScheduleIdForAddressAndIndex(msg.sender, calendarNumber);
+                vestingCalendarId = productTreasury.computeVestingScheduleIdForAddressAndIndex(msg.sender, calendarNumber); //TODO add count
                 emit LogBytes("vestingCalendarId", vestingCalendarId);
                 avaibleForClaim = productTreasury.computeReleasableAmount(vestingCalendarId);
                 emit Log("avaibleForClaim", avaibleForClaim);

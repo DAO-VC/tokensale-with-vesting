@@ -352,6 +352,49 @@ contract Treasury is Ownable, ReentrancyGuard {
         }
     }
 
+    /** test
+
+    */
+    event vestSchedule(string msg, VestingSchedule sced);
+    function computeReleasableAmountTest(bytes32 vestingScheduleId)
+        public
+        onlyIfVestingScheduleNotRevoked(vestingScheduleId)
+        returns(uint256){
+        VestingSchedule storage vestingSchedule = vestingSchedules[vestingScheduleId];
+        emit vestSchedule("test", vestingSchedule);
+        return _computeReleasableAmountTest(vestingSchedule);
+    }
+
+    event DataEv(string msg, uint256 value);
+    function _computeReleasableAmountTest(VestingSchedule memory vestingSchedule)
+    internal
+    returns(uint256){
+        uint256 currentTime = getCurrentTime();
+        emit DataEv("CURRENT TIME", currentTime);
+        if ((currentTime <= vestingSchedule.cliff + vestingSchedule.start) || vestingSchedule.revoked) { // (currentTime < vestingSchedule.cliff)??             emit DataEv("time < start + cliff || revoked", vestingSchedule.cliff + vestingSchedule.start);
+            emit DataEv("time < start + cliff || revoked", vestingSchedule.cliff + vestingSchedule.start);
+            return 0;
+        } else if (currentTime >= vestingSchedule.start + vestingSchedule.duration) {
+            emit DataEv("time > start + duration ", vestingSchedule.start + vestingSchedule.duration);
+            return vestingSchedule.amountTotal - vestingSchedule.released;
+        } else {
+            uint256 timeFromStart = currentTime - (vestingSchedule.start + vestingSchedule.cliff); // TODO CLIFF CHECK
+            emit DataEv("TIME FROM START", timeFromStart);
+            uint256 secondsPerSlice = vestingSchedule.slicePeriodSeconds;
+            uint256 vestedSlicePeriods = timeFromStart / secondsPerSlice;
+            emit DataEv("SLICED PERIODS: timeFromStart / secondsPerSlice", vestedSlicePeriods);
+            uint256 vestedSeconds = vestedSlicePeriods * secondsPerSlice;
+            emit DataEv("VESTED SECONDS", vestedSeconds);
+            uint256 vestedAmount = vestingSchedule.amountTotal * vestedSeconds / vestingSchedule.duration;
+            emit DataEv("VESTED AMOUNT", vestedAmount);
+            vestedAmount = vestedAmount - vestingSchedule.released;
+            emit DataEv("VESTED AMOUNT RESULT (-released)", vestedAmount);
+            return vestedAmount;
+        }
+    }
+
+
+
     function getCurrentTime()
         internal
         virtual
