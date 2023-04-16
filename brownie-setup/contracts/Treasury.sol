@@ -165,7 +165,7 @@ contract Treasury is Ownable, ReentrancyGuard {
         require(_amount > 0, "TokenVesting: amount must be > 0");
         require(_slicePeriodSeconds >= 1, "TokenVesting: slicePeriodSeconds must be >= 1");
         bytes32 vestingScheduleId = this.computeNextVestingScheduleIdForHolder(_beneficiary);
-        uint256 cliff = _start + _cliff;
+        uint256 cliff = _cliff;
         vestingSchedules[vestingScheduleId] = VestingSchedule(
             true,
             _beneficiary,
@@ -337,12 +337,12 @@ contract Treasury is Ownable, ReentrancyGuard {
     view
     returns(uint256){
         uint256 currentTime = getCurrentTime();
-        if ((currentTime < vestingSchedule.cliff) || vestingSchedule.revoked) {
+        if ((currentTime < vestingSchedule.cliff + vestingSchedule.start) || vestingSchedule.revoked) {
             return 0;
         } else if (currentTime >= vestingSchedule.start + vestingSchedule.duration) {
             return vestingSchedule.amountTotal - vestingSchedule.released;
         } else {
-            uint256 timeFromStart = currentTime - vestingSchedule.start;
+            uint256 timeFromStart = currentTime - (vestingSchedule.start + vestingSchedule.cliff);
             uint secondsPerSlice = vestingSchedule.slicePeriodSeconds;
             uint256 vestedSlicePeriods = timeFromStart / secondsPerSlice;
             uint256 vestedSeconds = vestedSlicePeriods * secondsPerSlice;
