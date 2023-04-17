@@ -43,27 +43,26 @@ contract Treasury is Ownable, ReentrancyGuard {
     IERC20 immutable private _token;
 
     bytes32[] private vestingSchedulesIds;
-    mapping(bytes32 => VestingSchedule) private vestingSchedules;
+    mapping(uint256 => mapping(bytes32 => VestingSchedule)) private vestingSchedules;
     uint256 private vestingSchedulesTotalAmount;
-    mapping(address => uint256) private holdersVestingCount;
-
+    mapping(uint256 => mapping(address => uint256)) private holdersVestingCount;
     event Released(uint256 amount);
     event Revoked();
 
     /**
     * @dev Reverts if no vesting schedule matches the passed identifier.
     */
-    modifier onlyIfVestingScheduleExists(bytes32 vestingScheduleId) {
-        require(vestingSchedules[vestingScheduleId].initialized, "VestingSchedule is not initialized");
+    modifier onlyIfVestingScheduleExists(bytes32 vestingScheduleId, uint256 marketId) {
+        require(vestingSchedules[marketId][vestingScheduleId].initialized, "VestingSchedule is not initialized");
         _;
     }
 
     /**
     * @dev Reverts if the vesting schedule does not exist or has been revoked.
     */
-    modifier onlyIfVestingScheduleNotRevoked(bytes32 vestingScheduleId) {
-        require(vestingSchedules[vestingScheduleId].initialized, "VestingSchedule is not initialized");
-        require(!vestingSchedules[vestingScheduleId].revoked, "VestingSchedule is revoked");
+    modifier onlyIfVestingScheduleNotRevoked(bytes32 vestingScheduleId, uint256 marketId) {
+        require(vestingSchedules[marketId][vestingScheduleId].initialized, "VestingSchedule is not initialized");
+        require(!vestingSchedules[marketId][vestingScheduleId].revoked, "VestingSchedule is revoked");
         _;
     }
 
@@ -84,11 +83,11 @@ contract Treasury is Ownable, ReentrancyGuard {
     * @dev Returns the number of vesting schedules associated to a beneficiary.
     * @return the number of vesting schedules
     */
-    function getVestingSchedulesCountByBeneficiary(address _beneficiary)
+    function getVestingSchedulesCountByBeneficiary(address _beneficiary, uint256 marketId)
     external
     view
     returns(uint256){
-        return holdersVestingCount[_beneficiary];
+        return holdersVestingCount[marketId][_beneficiary];
     }
 
     /**
@@ -107,11 +106,11 @@ contract Treasury is Ownable, ReentrancyGuard {
     * @notice Returns the vesting schedule information for a given holder and index.
     * @return the vesting schedule structure information
     */
-    function getVestingScheduleByAddressAndIndex(address holder, uint256 index)
+    function getVestingScheduleByAddressAndIndex(address holder, uint256 index, uint256 marketId)
     external
     view
     returns(VestingSchedule memory){
-        return getVestingSchedule(computeVestingScheduleIdForAddressAndIndex(holder, index));
+        return getVestingSchedule(computeVestingScheduleIdForAddressAndIndex(holder, index), marketId);
     }
 
 
@@ -164,9 +163,9 @@ contract Treasury is Ownable, ReentrancyGuard {
         require(_duration > 0, "TokenVesting: duration must be > 0");
         require(_amount > 0, "TokenVesting: amount must be > 0");
         require(_slicePeriodSeconds >= 1, "TokenVesting: slicePeriodSeconds must be >= 1");
-        bytes32 vestingScheduleId = this.computeNextVestingScheduleIdForHolder(_beneficiary);
+        bytes32 vestingScheduleId = this.computeNextVestingScheduleIdForHolder(_beneficiary, marketId);
         uint256 cliff = _cliff;
-        vestingSchedules[vestingScheduleId] = VestingSchedule(
+        vestingSchedules[marketId][vestingScheduleId] = VestingSchedule(
             true,
             _beneficiary,
             cliff,
@@ -182,22 +181,21 @@ contract Treasury is Ownable, ReentrancyGuard {
         );
         vestingSchedulesTotalAmount = vestingSchedulesTotalAmount + _amount;
         vestingSchedulesIds.push(vestingScheduleId);
-        uint256 currentVestingCount = holdersVestingCount[_beneficiary];
-        holdersVestingCount[_beneficiary] = currentVestingCount + 1;
+        holdersVestingCount[marketId][_beneficiary] += 1;
     }
 
     /**
     * @notice Revokes the vesting schedule for given identifier.
     * @param vestingScheduleId the vesting schedule identifier
     */
-    function revoke(bytes32 vestingScheduleId) nonReentrant
+    function revoke(bytes32 vestingScheduleId, uint256 marketId) nonReentrant
         public
         onlyOwner
-        onlyIfVestingScheduleNotRevoked(vestingScheduleId){
-        VestingSchedule storage vestingSchedule = vestingSchedules[vestingScheduleId];
+        onlyIfVestingScheduleNotRevoked(vestingScheduleId, marketId){
+        VestingSchedule storage vestingSchedule = vestingSchedules[marketId][vestingScheduleId];
         uint256 vestedAmount = _computeReleasableAmount(vestingSchedule);
         if(vestedAmount > 0){
-            release(vestingScheduleId, vestedAmount);
+            release(vestingScheduleId, vestedAmount, marketId);
         }
         uint256 unreleased = vestingSchedule.amountTotal - vestingSchedule.released;
         vestingSchedulesTotalAmount = vestingSchedulesTotalAmount - unreleased;
@@ -235,9 +233,10 @@ contract Treasury is Ownable, ReentrancyGuard {
     */
     function release(
         bytes32 vestingScheduleId,
-        uint256 amount
-    ) public nonReentrant onlyIfVestingScheduleNotRevoked(vestingScheduleId){
-        VestingSchedule storage vestingSchedule = vestingSchedules[vestingScheduleId];
+        uint256 amount,
+        uint256 marketId
+    ) public nonReentrant onlyIfVestingScheduleNotRevoked(vestingScheduleId, marketId){
+        VestingSchedule storage vestingSchedule = vestingSchedules[marketId][vestingScheduleId];
         bool isBeneficiary = msg.sender == vestingSchedule.beneficiary;
         bool isOwner = msg.sender == owner();
         require(
@@ -267,12 +266,12 @@ contract Treasury is Ownable, ReentrancyGuard {
     * @notice Computes the vested amount of tokens for the given vesting schedule identifier.
     * @return the vested amount
     */
-    function computeReleasableAmount(bytes32 vestingScheduleId)
+    function computeReleasableAmount(bytes32 vestingScheduleId, uint256 marketId)
         public
-        onlyIfVestingScheduleNotRevoked(vestingScheduleId)
+        onlyIfVestingScheduleNotRevoked(vestingScheduleId, marketId)
         view
         returns(uint256){
-        VestingSchedule storage vestingSchedule = vestingSchedules[vestingScheduleId];
+        VestingSchedule storage vestingSchedule = vestingSchedules[marketId][vestingScheduleId];
         return _computeReleasableAmount(vestingSchedule);
     }
 
@@ -280,11 +279,11 @@ contract Treasury is Ownable, ReentrancyGuard {
     * @notice Returns the vesting schedule information for a given identifier.
     * @return the vesting schedule structure information
     */
-    function getVestingSchedule(bytes32 vestingScheduleId)
+    function getVestingSchedule(bytes32 vestingScheduleId, uint256 marketId)
         public
         view
         returns(VestingSchedule memory){
-        return vestingSchedules[vestingScheduleId];
+        return vestingSchedules[marketId][vestingScheduleId];
     }
 
     /**
@@ -301,21 +300,21 @@ contract Treasury is Ownable, ReentrancyGuard {
     /**
     * @dev Computes the next vesting schedule identifier for a given holder address.
     */
-    function computeNextVestingScheduleIdForHolder(address holder)
+    function computeNextVestingScheduleIdForHolder(address holder, uint256 marketId)
         public
         view
         returns(bytes32){
-        return computeVestingScheduleIdForAddressAndIndex(holder, holdersVestingCount[holder]);
+        return computeVestingScheduleIdForAddressAndIndex(holder, holdersVestingCount[marketId][holder]);
     }
 
     /**
     * @dev Returns the last vesting schedule for a given holder address.
     */
-    function getLastVestingScheduleForHolder(address holder)
+    function getLastVestingScheduleForHolder(address holder, uint256 marketId)
         public
         view
         returns(VestingSchedule memory){
-        return vestingSchedules[computeVestingScheduleIdForAddressAndIndex(holder, holdersVestingCount[holder] - 1)];
+        return vestingSchedules[marketId][computeVestingScheduleIdForAddressAndIndex(holder, holdersVestingCount[marketId][holder] - 1)];
     }
 
     /**
@@ -351,6 +350,48 @@ contract Treasury is Ownable, ReentrancyGuard {
             return vestedAmount;
         }
     }
+
+    /** test
+
+    */
+    event vestSchedule(string msg, VestingSchedule sced);
+    function computeReleasableAmountTest(bytes32 vestingScheduleId, uint256 marketId)
+        public
+        onlyIfVestingScheduleNotRevoked(vestingScheduleId, marketId)
+        returns(uint256){
+        VestingSchedule storage vestingSchedule = vestingSchedules[marketId][vestingScheduleId];
+        emit vestSchedule("test", vestingSchedule);
+        return _computeReleasableAmountTest(vestingSchedule);
+    }
+
+    event DataEv(string msg, uint256 value);
+    function _computeReleasableAmountTest(VestingSchedule memory vestingSchedule)
+    internal
+    returns(uint256){
+        uint256 currentTime = getCurrentTime();
+        emit DataEv("CURRENT TIME", currentTime);
+        if ((currentTime <= vestingSchedule.cliff + vestingSchedule.start) || vestingSchedule.revoked) { // (currentTime < vestingSchedule.cliff)??             emit DataEv("time < start + cliff || revoked", vestingSchedule.cliff + vestingSchedule.start);
+            emit DataEv("time < start + cliff || revoked", vestingSchedule.cliff + vestingSchedule.start);
+            return 0;
+        } else if (currentTime >= vestingSchedule.start + vestingSchedule.duration) {
+            emit DataEv("time > start + duration ", vestingSchedule.start + vestingSchedule.duration);
+            return vestingSchedule.amountTotal - vestingSchedule.released;
+        } else {
+            uint256 timeFromStart = currentTime - (vestingSchedule.start + vestingSchedule.cliff); // TODO CLIFF CHECK
+            emit DataEv("TIME FROM START", timeFromStart);
+            uint256 secondsPerSlice = vestingSchedule.slicePeriodSeconds;
+            uint256 vestedSlicePeriods = timeFromStart / secondsPerSlice;
+            emit DataEv("SLICED PERIODS: timeFromStart / secondsPerSlice", vestedSlicePeriods);
+            uint256 vestedSeconds = vestedSlicePeriods * secondsPerSlice;
+            emit DataEv("VESTED SECONDS", vestedSeconds);
+            uint256 vestedAmount = vestingSchedule.amountTotal * vestedSeconds / vestingSchedule.duration;
+            emit DataEv("VESTED AMOUNT", vestedAmount);
+            vestedAmount = vestedAmount - vestingSchedule.released;
+            emit DataEv("VESTED AMOUNT RESULT (-released)", vestedAmount);
+            return vestedAmount;
+        }
+    }
+
 
     function getCurrentTime()
         internal

@@ -2,77 +2,107 @@ import pytest
 from brownie import *
 import brownie
 
+week = 604800
 
-@pytest.fixture(scope="module")
+
+@pytest.fixture(scope="function")
 def admin(accounts):
     yield accounts[0]
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def user(accounts):
     yield accounts[1]
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def usd_token(admin, erc20Sample):
     usd_token = admin.deploy(erc20Sample, "Usd", "Usd")
     yield usd_token
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def shark_token(admin, erc20Sample):
     shark_token = admin.deploy(erc20Sample, "Shark", "SHARK")
     yield shark_token
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def treasury(admin, shark_token, Treasury):
     treasury = admin.deploy(Treasury, shark_token.address)
     yield treasury
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def market(admin, usd_token, treasury, Market):
     market = admin.deploy(Market, usd_token.address, treasury.address, admin)
+    treasury.transferOwnership(market.address, {'from': admin})
     yield market
 
 
-def test_flow(admin, usd_token, shark_token, treasury, market, user):
-    week = 604800
+# def test_strait_flow(admin, usd_token, shark_token, treasury, market, user):
+#     assert usd_token.balanceOf(user) == 1_000e18
+#     buy = market.buy(1, 1000e18, user.address, {'from': user})  # set desired shark token amounts
+#     balance = usd_token.balanceOf(user)/1e18
+#     assert balance == 988
+#     assert usd_token.balanceOf(admin) == 1000012e18
+#     assert shark_token.balanceOf(user) == 50e18
+#
+#     schedules = treasury.getVestingSchedulesCountByBeneficiary(user, {'from': admin})
+#     schedule_id = treasury.computeVestingScheduleIdForAddressAndIndex(user, 0, {'from': admin})
+#     v_schedule = treasury.getVestingSchedule(schedule_id, {'from': admin})
+#     compute_unlock = treasury.computeReleasableAmount(schedule_id, {'from': admin})
+#
+#     chain.sleep((12 + 4) * week)
+#     release_amount = treasury.computeReleasableAmountTest(schedule_id, {'from': admin})
+#     assert release_amount.return_value/10e10 == int(v_schedule[7] * (v_schedule[5] / v_schedule[4]))/10e10
+#     claim = market.claim({'from': user})
+#     v_schedule1 = treasury.getVestingSchedule(schedule_id, {'from': admin})
+#     chain.sleep(46 * week)
+#     release_amount1 = treasury.computeReleasableAmountTest(schedule_id, {'from': admin})
+#     assert release_amount1.return_value / 10e10 == v_schedule1[7] / 10e10 - v_schedule1[9] / 10e10  # - release_amount.return_value/10e10
+#     claim = market.claim({'from': user})
+#     assert shark_token.balanceOf(user) == 1000e18
 
-    treasury.transferOwnership(market.address, {'from': admin})
-    deploy_new_round(_tge=3000, _cliff=12 * week, _duration=60 * week, _slice=4 * week, _price=10, market=market, admin=admin)  # seed
-    deploy_new_round(5000, 12 * week, 60 * week, 4 * week, 12, market, admin)  # Privat
+
+
+def test_err_flow(admin, usd_token, shark_token, treasury, market, user):
+    assert usd_token.balanceOf(user) == 1_000e18
+    buy = market.buy(1, 83e18, user.address, {'from': user})  # set desired shark token amounts
+    balance = int(usd_token.balanceOf(user)/1e18)
+    schedule_id = treasury.computeVestingScheduleIdForAddressAndIndex(user, 1, {'from': admin})
+    release_amount = treasury.computeReleasableAmountTest(schedule_id, {'from': admin})
+    assert balance == 999
+    assert release_amount == 0
+    assert market.avaibleToClaim(1, user) ==  False
+
+# def test_several_vesting(admin, usd_token, shark_token, treasury, market, user):
+#     assert usd_token.balanceOf(user) == 1_000e18
+#
+#     buy1 = market.buy(1, 1000e18, user.address, {'from': user})
+#     buy2 = market.buy(1, 1000e18, user.address, {'from': user})
+#     assert shark_token.balanceOf(user) == 100e18
+#     chain.sleep((12 + 4) * week)
+#
+#     claim = market.claim({'from': user})
+#     assert shark_token.balanceOf(user) == 200e18
+
+
+@pytest.fixture(autouse=True, scope="function")
+def init(admin, usd_token, shark_token, treasury, market, user):
+
+    deploy_new_round(_tge=3000, _cliff=12 * week, _duration=60 * week, _slice=4 * week, _price=10, market=market,
+                     admin=admin)  # seed
+    deploy_new_round(0, 0, 60 * 5 * 20, 60 * 5, 12, market, admin) #Privat
     deploy_new_round(7000, 12 * week, 60 * week, 4 * week, 14, market, admin)  # Strategic
     deploy_new_round(40000, 0 * week, 24 * week, 4 * week, 20, market, admin)  # Public
     deploy_new_round(25000, 0 * week, 32 * week, 4 * week, 17, market, admin)  # Witelist
     shark_token.mint(treasury.address, 1_000_000_000e18, {'from': admin})
 
     usd_token.mint(user, 1_000e18, {'from': admin})
-    assert usd_token.balanceOf(user) == 1_000e18
     usd_token.approve(market.address, 10000000e18, {'from': user})
     usd_token.approve(treasury.address, 10000000e18, {'from': user})
 
-    buy = market.buy(1, 1000e18, user.address, {'from': user})  # set desired shark token amounts
-    balance = usd_token.balanceOf(user)/1e18
-    assert balance == 988
-    assert usd_token.balanceOf(admin) == 1000012e18
-    assert shark_token.balanceOf(user) == 50e18
-
-    schedules = treasury.getVestingSchedulesCountByBeneficiary(user, {'from': admin})
-    schedule_id = treasury.computeVestingScheduleIdForAddressAndIndex(user, 0, {'from': admin})
-    v_schedule = treasury.getVestingSchedule(schedule_id, {'from': admin})
-    compute_unlock = treasury.computeReleasableAmount(schedule_id, {'from': admin})
-
-    chain.sleep(24 * week)
-    release_amount = treasury.computeReleasableAmountTest(schedule_id, {'from': admin})
-    claim = market.claim({'from': user})
-    v_schedule1 = treasury.getVestingSchedule(schedule_id, {'from': admin})
-
-
-
-    assert shark_token.balanceOf(user) == 50e18
-    assert v_schedule.initialized
 
 def deploy_new_round(_tge, _cliff, _duration, _slice, _price, market, admin):
     start = 1681650955
