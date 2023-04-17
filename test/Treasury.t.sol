@@ -60,24 +60,24 @@ contract TreasuryTest is Test {
 
         //console.log('Vesting callendar index', tresury.computeVestingScheduleIdForAddressAndIndex(address(this), calendarNumber));
 
-        //uint256 avaibleToClaim = tresury.computeReleasableAmount(vestingCalendarId);
-        console.log('Avaible amount for claim from tresury before warp', treasury.computeReleasableAmount(vestingCalendarId));
+        //uint256 availableToClaim = tresury.computeReleasableAmount(vestingCalendarId);
+        console.log('available amount for claim from tresury before warp', treasury.computeReleasableAmount(vestingCalendarId));
         
         //vm.roll(block.number + 100);
         vm.warp(block.timestamp + duration + 1);
 
-        uint256 avaibleToClaim = treasury.computeReleasableAmount(vestingCalendarId);
-        console.log('Avaible amount for claim from tresury after warp', avaibleToClaim);
+        uint256 availableToClaim = treasury.computeReleasableAmount(vestingCalendarId);
+        console.log('available amount for claim from tresury after warp', availableToClaim);
         
         //console.log('Block number 2', block.number);
         //console.log('Timestamp 2', block.timestamp);
 
-        treasury.release(vestingCalendarId, avaibleToClaim);
+        treasury.release(vestingCalendarId, availableToClaim);
 
         console.log('balance of test user after release tokens', usdc.balanceOf(address(this)));
 
         
-        console.log('Avaible amount for claim from tresury after release', treasury.computeReleasableAmount(vestingCalendarId));
+        console.log('available amount for claim from tresury after release', treasury.computeReleasableAmount(vestingCalendarId));
 
 
 
@@ -148,47 +148,47 @@ contract TreasuryTest is Test {
         
         for (uint256 calendarNumber = 0; calendarNumber < vestingScheduleCount; calendarNumber++) {
             vestingCalendarId = tresury.computeVestingScheduleIdForAddressAndIndex(address(this), calendarNumber);
-            avaibleToClaim = tresury.computeReleasableAmount(vestingCalendarId);
-            console.log('avaible %i', tresury.computeReleasableAmount(vestingCalendarId));
-            tresury.release(vestingCalendarId, avaibleToClaim);
+            availableToClaim = tresury.computeReleasableAmount(vestingCalendarId);
+            console.log('available %i', tresury.computeReleasableAmount(vestingCalendarId));
+            tresury.release(vestingCalendarId, availableToClaim);
         }
 
 
 
         bytes32 vestingCalendarId = tresury.computeVestingScheduleIdForAddressAndIndex(address(this), calendarNumber);
-        console.log('AVAIBLE 1', tresury.computeReleasableAmount(vestingCalendarId));
+        console.log('available 1', tresury.computeReleasableAmount(vestingCalendarId));
 
         vm.warp(start + cliff + slicePeriodSeconds);
         console.log('Timestamp', block.timestamp);
 
-        uint256 avaibleToClaim = tresury.computeReleasableAmount(vestingCalendarId);
-        console.log('AVAIBLE 2', avaibleToClaim);
-        tresury.release(vestingCalendarId, avaibleToClaim);
+        uint256 availableToClaim = tresury.computeReleasableAmount(vestingCalendarId);
+        console.log('available 2', availableToClaim);
+        tresury.release(vestingCalendarId, availableToClaim);
         console.log('USER ACC', usdc.balanceOf(address(this)));
 
         vm.warp(start + cliff + 2*slicePeriodSeconds);
         console.log('Timestamp', block.timestamp);
 
-        avaibleToClaim = tresury.computeReleasableAmount(vestingCalendarId);
-        console.log('AVAIBLE 3', avaibleToClaim);
-        tresury.release(vestingCalendarId, avaibleToClaim);
+        availableToClaim = tresury.computeReleasableAmount(vestingCalendarId);
+        console.log('available 3', availableToClaim);
+        tresury.release(vestingCalendarId, availableToClaim);
         console.log('USER ACC', usdc.balanceOf(address(this)));
 
         vm.warp(start + cliff + 3*slicePeriodSeconds);
         console.log('Timestamp', block.timestamp);
 
-        avaibleToClaim = tresury.computeReleasableAmount(vestingCalendarId);
-        console.log('AVAIBLE 4', avaibleToClaim);
-        tresury.release(vestingCalendarId, avaibleToClaim);
+        availableToClaim = tresury.computeReleasableAmount(vestingCalendarId);
+        console.log('available 4', availableToClaim);
+        tresury.release(vestingCalendarId, availableToClaim);
         console.log('USER ACC', usdc.balanceOf(address(this)));
 
 
         vm.warp(start + cliff + 4*slicePeriodSeconds);
         console.log('Timestamp', block.timestamp);
 
-        avaibleToClaim = tresury.computeReleasableAmount(vestingCalendarId);
-        console.log('AVAIBLE 5', avaibleToClaim);
-        tresury.release(vestingCalendarId, avaibleToClaim);
+        availableToClaim = tresury.computeReleasableAmount(vestingCalendarId);
+        console.log('available 5', availableToClaim);
+        tresury.release(vestingCalendarId, availableToClaim);
         console.log('USER ACC', usdc.balanceOf(address(this)));
         */
 
@@ -196,12 +196,12 @@ contract TreasuryTest is Test {
 
     function computeAndReleaseMultiplyCallendars(uint256 callendarCount) public {
         bytes32 vestingCalendarId;
-        uint256 avaibleToClaim;
+        uint256 availableToClaim;
         for (uint256 calendarNumber = 0; calendarNumber < callendarCount; calendarNumber++) {
             vestingCalendarId = treasury.computeVestingScheduleIdForAddressAndIndex(address(this), calendarNumber);
-            avaibleToClaim = treasury.computeReleasableAmount(vestingCalendarId);
-            console.log('avaible %i', avaibleToClaim);
-            treasury.release(vestingCalendarId, avaibleToClaim);
+            availableToClaim = treasury.computeReleasableAmount(vestingCalendarId);
+            console.log('available %i', availableToClaim);
+            treasury.release(vestingCalendarId, availableToClaim);
         }
     }
 }

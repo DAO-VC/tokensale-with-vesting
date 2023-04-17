@@ -125,9 +125,9 @@ contract MarketTest is Test {
             console.log("Timestamp:", block.timestamp);
             ITreasury.VestingSchedule memory userInfoForRound = market.getVestingScheduleForIndex(_market, address(this));
             //bytes32 vestingCalendarId = productTreasury.computeVestingScheduleIdForAddressAndIndex(address(this), 0);
-            //uint256 avaibleToClaim = productTreasury.computeReleasableAmount(vestingCalendarId);
+            //uint256 availableToClaim = productTreasury.computeReleasableAmount(vestingCalendarId);
             console.log("Alredy claimed:", userInfoForRound.released);
-            console.log("Avaible to claim", market.avaibleToClaim(_market, address(this)));
+            console.log("available to claim", market.availableToClaim(_market, address(this)));
             market.claimForIndex(_market);
             //console.log("Treasury balance of product token", productToken.balanceOf(address(productTreasury)));
             //market.claimForAdress(address(this));
@@ -136,7 +136,7 @@ contract MarketTest is Test {
 
     function buyAtMarket(uint256 _market, uint256 _amount) public {
         // buy tokens from market contract
-        //buy(uint256 _market, uint256 _amount, address _benefeciary) 
+        //buy(uint256 _market, uint256 _amount, address _beneficiary) 
         console.log("Price for 10k tokens", market.calculateOrderPrice(_market, _amount));
         usdc.approve(address(market), market.calculateOrderPrice(_market, _amount));
         market.buy(0, _amount, address(this));

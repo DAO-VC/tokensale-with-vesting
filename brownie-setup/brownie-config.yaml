@@ -13,4 +13,4 @@ compiler:
       - "@openzeppelin/contracts-upgradeable=OpenZeppelin/openzeppelin-contracts-upgradeable@4.8.0"
 
 
-dotenv: .env
+# dotenv: .env

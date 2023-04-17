@@ -33,8 +33,8 @@ interface IMarket {
 
     function DEFAULT_ADMIN_ROLE() external view returns (bytes32);
     function OPERATOR() external view returns (bytes32);
-    function avaibleToClaim(uint256 _index, address _benefeciary) external view returns (uint256 _avaible);
-    function buy(uint256 _market, uint256 _amount, address _benefeciary) external;
+    function availableToClaim(uint256 _index, address _beneficiary) external view returns (uint256 _available);
+    function buy(uint256 _market, uint256 _amount, address _beneficiary) external;
     function calculateOrderPrice(uint256 _market, uint256 _amount) external view returns (uint256 _price);
     function calculateOrderSize(uint256 _market, uint256 _amount)
         external
@@ -59,15 +59,15 @@ interface IMarket {
     function getIndexCount() external view returns (uint256);
     function getMarketInfo(uint256 _index) external view returns (MarketInfo memory);
     function getRoleAdmin(bytes32 role) external view returns (bytes32);
-    function getVestingScheduleForIndex(uint256 _index, address _benefeciary)
+    function getVestingScheduleForIndex(uint256 _index, address _beneficiary)
         external
         view
         returns (VestingSchedule memory);
-    function getVestingSchedules(address _benefeciary) external view returns (VestingSchedule[] memory);
+    function getVestingSchedules(address _beneficiary) external view returns (VestingSchedule[] memory);
     function grantRole(bytes32 role, address account) external;
     function hasRole(bytes32 role, address account) external view returns (bool);
     function marketsCount() external view returns (uint256);
-    function migrateUser(uint256 _market, uint256 _amount, address _benefeciary) external;
+    function migrateUser(uint256 _market, uint256 _amount, address _beneficiary) external;
     function productTreasury() external view returns (address);
     function renounceRole(bytes32 role, address account) external;
     function revokeRole(bytes32 role, address account) external;

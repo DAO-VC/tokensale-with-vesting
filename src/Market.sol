@@ -78,28 +78,28 @@ contract Market is AccessControl {
 
     }
 
-    function migrateUser(uint256 _market, uint256 _amount, address _benefeciary) public {
+    function migrateUser(uint256 _market, uint256 _amount, address _beneficiary) public {
         require(hasRole(OPERATOR, msg.sender), "Caller is not an operator");
         require(marketsCount > _market, "Incorect market");
         require(markets[_market].minOrderSize >= _amount && markets[_market].maxOrderSize <= _amount, "Min or max order size limit");
 
         (uint256 tgeAmount, uint256 vestingAmount) = calculateOrderSize(_market, _amount);
-        productTreasury.withdrawTo(tgeAmount, _benefeciary);
-        _migrateUser(_market, vestingAmount, _benefeciary);
+        productTreasury.withdrawTo(tgeAmount, _beneficiary);
+        _migrateUser(_market, vestingAmount, _beneficiary);
     }
 
-    function buy(uint256 _market, uint256 _amount, address _benefeciary) public {
+    function buy(uint256 _market, uint256 _amount, address _beneficiary) public {
         require(marketsCount > _market, "Incorect market");
         //require(markets[_market].minOrderSize >= _amount && markets[_market].maxOrderSize <= _amount, "Min or max order size limit");
         (uint256 tgeAmount, uint256 vestingAmount) = calculateOrderSize(_market, _amount);        
         currency.transferFrom(msg.sender, currencyTreasury, tgeAmount);
         
-        productTreasury.withdrawTo(tgeAmount, _benefeciary);
-        _migrateUser(_market, vestingAmount, _benefeciary);
+        productTreasury.withdrawTo(tgeAmount, _beneficiary);
+        _migrateUser(_market, vestingAmount, _beneficiary);
     }
 
-    function _migrateUser(uint256 _market, uint256 _amount, address _benefeciary) private {
-        productTreasury.createVestingSchedule(_benefeciary, 
+    function _migrateUser(uint256 _market, uint256 _amount, address _beneficiary) private {
+        productTreasury.createVestingSchedule(_beneficiary, 
                                             markets[_market].start, 
                                             markets[_market].cliff, 
                                             markets[_market].duration, 
@@ -121,16 +121,16 @@ contract Market is AccessControl {
         _price = _amount * markets[_market].price / 1e3; // price = price*1000, 0.01 = 10
     }
 
-    function avaibleToClaim(uint256 _index, address _benefeciary) public view returns( uint256 _avaible ) {
-        bytes32 vestingCalendarId = productTreasury.computeVestingScheduleIdForAddressAndIndex(_benefeciary, _index);
-        _avaible = productTreasury.computeReleasableAmount(vestingCalendarId);
+    function availableToClaim(uint256 _index, address _beneficiary) public view returns( uint256 _available ) {
+        bytes32 vestingCalendarId = productTreasury.computeVestingScheduleIdForAddressAndIndex(_beneficiary, _index);
+        _available = productTreasury.computeReleasableAmount(vestingCalendarId);
     }
 
     // @dev call getIndexCount, and claim in loop for all indexes
     function claimForIndex(uint256 _index) public {
             bytes32 vestingCalendarId = productTreasury.computeVestingScheduleIdForAddressAndIndex(msg.sender, _index);
-            uint256 avaibleForClaim = productTreasury.computeReleasableAmount(vestingCalendarId);
-            productTreasury.release(vestingCalendarId, avaibleForClaim);
+            uint256 availableForClaim = productTreasury.computeReleasableAmount(vestingCalendarId);
+            productTreasury.release(vestingCalendarId, availableForClaim);
 
     }
 
@@ -138,26 +138,28 @@ contract Market is AccessControl {
     function claim() public {
             uint256 vestingScheduleCount = productTreasury.getVestingSchedulesCountByBeneficiary(msg.sender);
             bytes32 vestingCalendarId;
-            uint256 avaibleForClaim;
+            uint256 availableForClaim;
             for (uint256 calendarNumber = 0; calendarNumber < vestingScheduleCount; calendarNumber++) {
-                vestingCalendarId = productTreasury.computeVestingScheduleIdForAddressAndIndex(address(this), calendarNumber);
-                avaibleForClaim = productTreasury.computeReleasableAmount(vestingCalendarId);
-                productTreasury.release(vestingCalendarId, avaibleForClaim);
+                // vestingCalendarId = productTreasury.computeVestingScheduleIdForAddressAndIndex(address(this), calendarNumber);                
+                // availableForClaim = productTreasury.computeReleasableAmount(vestingCalendarId);
+                availableForClaim += availableToClaim(calendarNumber, msg.sender);
+                
             }
+            productTreasury.release(vestingCalendarId, availableForClaim);
 
 
     }
 
-    function getVestingScheduleForIndex(uint256 _index, address _benefeciary) public view returns(ITreasury.VestingSchedule memory) {
-        return productTreasury.getVestingScheduleByAddressAndIndex(_benefeciary, _index);
+    function getVestingScheduleForIndex(uint256 _index, address _beneficiary) public view returns(ITreasury.VestingSchedule memory) {
+        return productTreasury.getVestingScheduleByAddressAndIndex(_beneficiary, _index);
     }
 
     // @dev Use careful - O(n) function
-    function getVestingSchedules(address _benefeciary) public view returns(ITreasury.VestingSchedule[] memory){ 
-        uint256 vestingScheduleCount = productTreasury.getVestingSchedulesCountByBeneficiary(_benefeciary);
+    function getVestingSchedules(address _beneficiary) public view returns(ITreasury.VestingSchedule[] memory){ 
+        uint256 vestingScheduleCount = productTreasury.getVestingSchedulesCountByBeneficiary(_beneficiary);
         ITreasury.VestingSchedule[] memory vestingSchedules = new ITreasury.VestingSchedule[](vestingScheduleCount);
         for (uint256 calendarNumber = 0; calendarNumber < vestingScheduleCount; calendarNumber++) {
-                vestingSchedules[calendarNumber] = productTreasury.getVestingScheduleByAddressAndIndex(_benefeciary, calendarNumber);
+                vestingSchedules[calendarNumber] = productTreasury.getVestingScheduleByAddressAndIndex(_beneficiary, calendarNumber);
         }
         return vestingSchedules;
     }

@@ -20,8 +20,8 @@ def usd_token(admin, erc20Sample):
 
 
 @pytest.fixture(scope="module")
-def shark_token(admin, erc20Sample):
-    shark_token = admin.deploy(erc20Sample, "Shark", "SHARK")
+def shark_token(admin, Coin):
+    shark_token = admin.deploy(Coin, "Shark", "SHARK", 1_000_000_000e18, admin)
     yield shark_token
 
 
@@ -46,7 +46,7 @@ def test_flow(admin, usd_token, shark_token, treasury, market, user):
     deploy_new_round(7000, 12 * week, 60 * week, 4 * week, 14, market, admin)  # Strategic
     deploy_new_round(40000, 0 * week, 24 * week, 4 * week, 20, market, admin)  # Public
     deploy_new_round(25000, 0 * week, 32 * week, 4 * week, 17, market, admin)  # Witelist
-    shark_token.mint(treasury.address, 1_000_000_000e18, {'from': admin})
+    shark_token.transfer( treasury.address, 582_500_000e18, {'from': admin})
 
     usd_token.mint(user, 1_000e18, {'from': admin})
     assert usd_token.balanceOf(user) == 1_000e18
