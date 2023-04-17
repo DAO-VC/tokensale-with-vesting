@@ -101,9 +101,7 @@ contract Market is AccessControl {
         _migrateUser(_market, vestingAmount, _beneficiary);
     }
 
-    event MarketData(string msg, uint256 val);
     function _migrateUser(uint256 _market, uint256 _amount, address _beneficiary) private {
-        emit MarketData("markets[_market].cliff", markets[_market].cliff);
         productTreasury.createVestingSchedule(_beneficiary,
                                             markets[_market].start, 
                                             markets[_market].cliff, 
@@ -127,54 +125,54 @@ contract Market is AccessControl {
         _price = _amount * markets[_market].price / 1e3; // price = price*1000, 0.01 = 10
     }
 
-    function avaibleToClaim(uint256 _index, address _benefeciary) public view returns( uint256 _avaible ) {
+    function avaibleToClaim(uint256 _index, address _benefeciary, uint256 marketId) public view returns( uint256 _avaible ) {
         bytes32 vestingCalendarId = productTreasury.computeVestingScheduleIdForAddressAndIndex(_benefeciary, _index);
-        _avaible = productTreasury.computeReleasableAmount(vestingCalendarId);
+        _avaible = productTreasury.computeReleasableAmount(vestingCalendarId, marketId);
     }
 
     // @dev call getIndexCount, and claim in loop for all indexes
-    function claimForIndex(uint256 _index) public {
+    function claimForIndex(uint256 _index, uint256 marketId) public {
             bytes32 vestingCalendarId = productTreasury.computeVestingScheduleIdForAddressAndIndex(msg.sender, _index);
-            uint256 avaibleForClaim = productTreasury.computeReleasableAmount(vestingCalendarId);
-            productTreasury.release(vestingCalendarId, avaibleForClaim);
+            uint256 avaibleForClaim = productTreasury.computeReleasableAmount(vestingCalendarId, marketId);
+            productTreasury.release(vestingCalendarId, avaibleForClaim, marketId);
 
     }
 
     event Log(string msg, uint256 data);
     event LogBytes(string msg, bytes32 data);
     // @dev Use careful - O(n) function
-    function claim() public {
-            uint256 vestingScheduleCount = productTreasury.getVestingSchedulesCountByBeneficiary(msg.sender);
+    function claim(uint256 marketId) public {
+            uint256 vestingScheduleCount = productTreasury.getVestingSchedulesCountByBeneficiary(msg.sender, marketId);
             emit Log("vestingScheduleCount", vestingScheduleCount);
             bytes32 vestingCalendarId;
             uint256 avaibleForClaim;
             for (uint256 calendarNumber = 0; calendarNumber < vestingScheduleCount; calendarNumber++) {
                 vestingCalendarId = productTreasury.computeVestingScheduleIdForAddressAndIndex(msg.sender, calendarNumber); //TODO add count
                 emit LogBytes("vestingCalendarId", vestingCalendarId);
-                avaibleForClaim = productTreasury.computeReleasableAmount(vestingCalendarId);
+                avaibleForClaim = productTreasury.computeReleasableAmount(vestingCalendarId, marketId);
                 emit Log("avaibleForClaim", avaibleForClaim);
-                productTreasury.release(vestingCalendarId, avaibleForClaim);
+                productTreasury.release(vestingCalendarId, avaibleForClaim, marketId);
             }
 
 
     }
 
-    function getVestingScheduleForIndex(uint256 _index, address _benefeciary) public view returns(ITreasury.VestingSchedule memory) {
-        return productTreasury.getVestingScheduleByAddressAndIndex(_benefeciary, _index);
+    function getVestingScheduleForIndex(uint256 _index, address _benefeciary, uint256 marketId) public view returns(ITreasury.VestingSchedule memory) {
+        return productTreasury.getVestingScheduleByAddressAndIndex(_benefeciary, _index, marketId);
     }
 
     // @dev Use careful - O(n) function
-    function getVestingSchedules(address _benefeciary) public view returns(ITreasury.VestingSchedule[] memory){ 
-        uint256 vestingScheduleCount = productTreasury.getVestingSchedulesCountByBeneficiary(_benefeciary);
+    function getVestingSchedules(address _benefeciary, uint256 marketId) public view returns(ITreasury.VestingSchedule[] memory){
+        uint256 vestingScheduleCount = productTreasury.getVestingSchedulesCountByBeneficiary(_benefeciary, marketId);
         ITreasury.VestingSchedule[] memory vestingSchedules = new ITreasury.VestingSchedule[](vestingScheduleCount);
         for (uint256 calendarNumber = 0; calendarNumber < vestingScheduleCount; calendarNumber++) {
-                vestingSchedules[calendarNumber] = productTreasury.getVestingScheduleByAddressAndIndex(_benefeciary, calendarNumber);
+                vestingSchedules[calendarNumber] = productTreasury.getVestingScheduleByAddressAndIndex(_benefeciary, calendarNumber, marketId);
         }
         return vestingSchedules;
     }
 
-    function getIndexCount() public view returns(uint256) {
-        return productTreasury.getVestingSchedulesCountByBeneficiary(msg.sender);
+    function getIndexCount(uint256 marketId) public view returns(uint256) {
+        return productTreasury.getVestingSchedulesCountByBeneficiary(msg.sender, marketId);
     }
 
     function getMarketInfo(uint256 _index) public view returns(MarketInfo memory) {

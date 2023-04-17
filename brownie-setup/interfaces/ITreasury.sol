@@ -21,8 +21,8 @@ interface ITreasury {
         uint256 roundId;
     }
 
-    function computeNextVestingScheduleIdForHolder(address holder) external view returns (bytes32);
-    function computeReleasableAmount(bytes32 vestingScheduleId) external view returns (uint256);
+    function computeNextVestingScheduleIdForHolder(address holder, uint256 marketId) external view returns (bytes32);
+    function computeReleasableAmount(bytes32 vestingScheduleId, uint256 marketId) external view returns (uint256);
     function computeVestingScheduleIdForAddressAndIndex(address holder, uint256 index)
         external
         pure
@@ -37,22 +37,22 @@ interface ITreasury {
         uint256 _amount,
         uint256 roundId
     ) external;
-    function getLastVestingScheduleForHolder(address holder) external view returns (VestingSchedule memory);
+    function getLastVestingScheduleForHolder(address holder, uint256 marketId) external view returns (VestingSchedule memory);
     function getToken() external view returns (address);
     function getVestingIdAtIndex(uint256 index) external view returns (bytes32);
-    function getVestingSchedule(bytes32 vestingScheduleId) external view returns (VestingSchedule memory);
-    function getVestingScheduleByAddressAndIndex(address holder, uint256 index)
+    function getVestingSchedule(bytes32 vestingScheduleId, uint256 marketId) external view returns (VestingSchedule memory);
+    function getVestingScheduleByAddressAndIndex(address holder, uint256 index, uint256 marketId)
         external
         view
         returns (VestingSchedule memory);
     function getVestingSchedulesCount() external view returns (uint256);
-    function getVestingSchedulesCountByBeneficiary(address _beneficiary) external view returns (uint256);
+    function getVestingSchedulesCountByBeneficiary(address _beneficiary, uint256 marketId) external view returns (uint256);
     function getVestingSchedulesTotalAmount() external view returns (uint256);
     function getWithdrawableAmount() external view returns (uint256);
     function owner() external view returns (address);
-    function release(bytes32 vestingScheduleId, uint256 amount) external;
+    function release(bytes32 vestingScheduleId, uint256 amount, uint256 marketId) external;
     function renounceOwnership() external;
-    function revoke(bytes32 vestingScheduleId) external;
+    function revoke(bytes32 vestingScheduleId, uint256 marketId) external;
     function transferOwnership(address newOwner) external;
     function withdraw(uint256 amount) external;
     function withdrawTo(uint256 amount, address beneficiary) external;

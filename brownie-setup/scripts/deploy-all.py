@@ -3,7 +3,7 @@ from brownie import *
 week = 604800
 
 
-start = 1681477879
+start = 1681650955
 revocable = False
 minOrderSize = 1
 maxOrderSize = 10e27
@@ -12,13 +12,13 @@ permissionLess = True
 
 def main():
     acct_adm = accounts.add('5520296cb0c30b4918378accb9250e439aa023bcc1d96112fdc36991b10135e2')
-    usd_token = erc20Sample.at('0xa6DeF519f70F341eb4717A48098377233D613fdB')
-    shark_token = erc20Sample.at('0x581b4dd317FC60A4Cc26a468a915f869591ED015')
+    usd_token = erc20Sample.deploy("USD", "USD", {'from': acct_adm})
+    shark_token = erc20Sample.deploy("Shark", "SHR", {'from': acct_adm})
     treasury = Treasury.deploy(shark_token.address, {'from': acct_adm})
     market = Market.deploy(usd_token.address, treasury.address, acct_adm, {'from': acct_adm})
     treasury.transferOwnership(market.address, {'from': acct_adm})
     deployNewRound(3000, 12 * week, 60 * week, 60 * 10, 10, market, acct_adm) #seed
-    deployNewRound(5000, 12 * week, 60 * week, 60 * 10, 12, market, acct_adm) #Privat
+    deployNewRound(0, 0, 60 * 5 * 20, 60 * 5, 12, market, acct_adm) #Privat
     deployNewRound(7000, 12 * week, 60 * week, 60 * 10, 14, market, acct_adm) #Strategic
     deployNewRound(40000, 0 * week, 24 * week, 60 * 10, 20, market, acct_adm) #Public
     deployNewRound(25000, 0 * week, 32 * week, 60 * 10, 17, market, acct_adm) #Witelist
