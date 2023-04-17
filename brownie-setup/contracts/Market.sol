@@ -89,20 +89,22 @@ contract Market is AccessControl {
         _migrateUser(_market, vestingAmount, _beneficiary);
     }
 
-    function buy(uint256 _market, uint256 _amount, address _benefeciary) public {
+    function buy(uint256 _market, uint256 _amount, address _beneficiary) public {
         require(marketsCount > _market, "Incorect market");
         if (!markets[_market].permissionLess) {
-            require(hasRole(WHITELISTED_ADDRESS, _benefeciary), "User is not in white list");
+            require(hasRole(WHITELISTED_ADDRESS, _beneficiary), "User is not in white list");
         }
         require(markets[_market].minOrderSize <= _amount && markets[_market].maxOrderSize >= _amount, "Min or max order size limit");
         currency.transferFrom(msg.sender, currencyTreasury, calculateOrderPrice(_market, _amount));
         (uint256 tgeAmount, uint256 vestingAmount) = calculateOrderSize(_market, _amount);
-        productTreasury.withdrawTo(tgeAmount, _benefeciary);
-        _migrateUser(_market, vestingAmount, _benefeciary);
+        productTreasury.withdrawTo(tgeAmount, _beneficiary);
+        _migrateUser(_market, vestingAmount, _beneficiary);
     }
 
-    function _migrateUser(uint256 _market, uint256 _amount, address _benefeciary) private {
-        productTreasury.createVestingSchedule(_benefeciary, 
+    event MarketData(string msg, uint256 val);
+    function _migrateUser(uint256 _market, uint256 _amount, address _beneficiary) private {
+        emit MarketData("markets[_market].cliff", markets[_market].cliff);
+        productTreasury.createVestingSchedule(_beneficiary,
                                             markets[_market].start, 
                                             markets[_market].cliff, 
                                             markets[_market].duration, 
@@ -147,7 +149,7 @@ contract Market is AccessControl {
             bytes32 vestingCalendarId;
             uint256 avaibleForClaim;
             for (uint256 calendarNumber = 0; calendarNumber < vestingScheduleCount; calendarNumber++) {
-                vestingCalendarId = productTreasury.computeVestingScheduleIdForAddressAndIndex(msg.sender, calendarNumber);
+                vestingCalendarId = productTreasury.computeVestingScheduleIdForAddressAndIndex(msg.sender, calendarNumber); //TODO add count
                 emit LogBytes("vestingCalendarId", vestingCalendarId);
                 avaibleForClaim = productTreasury.computeReleasableAmount(vestingCalendarId);
                 emit Log("avaibleForClaim", avaibleForClaim);
