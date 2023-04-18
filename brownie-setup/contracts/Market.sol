@@ -29,6 +29,7 @@ contract Market is AccessControl {
         uint256 minOrderSize;
         uint256 maxOrderSize;
         bool permissionLess; // true = igniring whitelist
+        uint256 totalRaised;
     }
 
     mapping(uint256 => MarketInfo) markets;
@@ -72,7 +73,8 @@ contract Market is AccessControl {
             _price,
             _minOrderSize,
             _maxOrderSize,
-            _permissionLess
+            _permissionLess,
+            0
         );
         
         marketsCount += 1;
@@ -110,12 +112,13 @@ contract Market is AccessControl {
                                             markets[_market].revocable,
                                             _amount,
                                             _market);
+        markets[_market].totalRaised += _amount;
     }
 
     function calculateOrderSize(uint256 _market, uint256 _amount) public view returns(uint256 _tgeAmount, uint256 _vestingAmount) {
         require(marketsCount > _market, "Incorect market");
 
-        _tgeAmount = _amount * markets[_market].tgeRatio / 1e5;
+        _tgeAmount = _amount * markets[_market].tgeRatio / 1e6;
         _vestingAmount = _amount - _tgeAmount;
 
     }
@@ -125,17 +128,23 @@ contract Market is AccessControl {
         _price = _amount * markets[_market].price / 1e3; // price = price*1000, 0.01 = 10
     }
 
-    function avaibleToClaim(uint256 _index, address _benefeciary, uint256 marketId) public view returns( uint256 _avaible ) {
-        bytes32 vestingCalendarId = productTreasury.computeVestingScheduleIdForAddressAndIndex(_benefeciary, _index);
-        _avaible = productTreasury.computeReleasableAmount(vestingCalendarId, marketId);
-    }
-
     // @dev call getIndexCount, and claim in loop for all indexes
     function claimForIndex(uint256 _index, uint256 marketId) public {
             bytes32 vestingCalendarId = productTreasury.computeVestingScheduleIdForAddressAndIndex(msg.sender, _index);
             uint256 avaibleForClaim = productTreasury.computeReleasableAmount(vestingCalendarId, marketId);
             productTreasury.release(vestingCalendarId, avaibleForClaim, marketId);
 
+    }
+
+    function avaibleToClaim(address _benefeciary, uint256 marketId) public view returns( uint256 _avaible ) {
+        uint256 vestingScheduleCount = productTreasury.getVestingSchedulesCountByBeneficiary(msg.sender, marketId);
+        bytes32 vestingCalendarId;
+        uint256 avaibleForClaim = 0;
+        for (uint256 calendarNumber = 0; calendarNumber < vestingScheduleCount; calendarNumber++) {
+            vestingCalendarId = productTreasury.computeVestingScheduleIdForAddressAndIndex(msg.sender, calendarNumber); //TODO add count
+            avaibleForClaim += productTreasury.computeReleasableAmount(vestingCalendarId, marketId);
+        }
+        return avaibleForClaim;
     }
 
     event Log(string msg, uint256 data);
