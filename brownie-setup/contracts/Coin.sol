@@ -9,13 +9,15 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 
 import "./lib/ERC20Hooks.sol";
 import "./lib/errors.sol";
+import "../interfaces/IAntiSnipe.sol";
 
 /**
  * @dev {ERC20} Coin token
  */
 contract Coin is AccessControlEnumerable, Pausable, ERC20Burnable,  ERC20Hooks {
     bytes32 public constant MANAGE_ROLE = keccak256("MANAGE_ROLE");
-
+    address private antisnipeAddress;
+    bool private isAntisnipeDisable;
     constructor(
         string memory name,
         string memory symbol,
@@ -40,6 +42,15 @@ contract Coin is AccessControlEnumerable, Pausable, ERC20Burnable,  ERC20Hooks {
         _pause();
     }
 
+    function setAntisnipeAddress (address _addr) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        antisnipeAddress = _addr;
+
+    }
+
+     function setAntisnipeDisable (bool _flag) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        isAntisnipeDisable = _flag;
+
+     }
     /**
      * @dev Unpauses all token transfers.
      */
@@ -86,6 +97,10 @@ contract Coin is AccessControlEnumerable, Pausable, ERC20Burnable,  ERC20Hooks {
         if (paused()) revert TransferWhilePaused();
 
         _applyHooks(_msgSender(), from, to, amount);
+
+        if (!isAntisnipeDisable) {
+            require (IAntiSnipe(antisnipeAddress ).check( msg.sender,  msg.data), "not right way");
+        }
     }
 
     /**
