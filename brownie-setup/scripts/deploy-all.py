@@ -3,7 +3,7 @@ from brownie import *
 week = 604800
 
 
-start = 1681650955
+start = 1681806409
 revocable = False
 minOrderSize = 1
 maxOrderSize = 10e27
@@ -12,8 +12,8 @@ permissionLess = True
 
 def main():
     acct_adm = accounts.add('5520296cb0c30b4918378accb9250e439aa023bcc1d96112fdc36991b10135e2')
-    usd_token = erc20Sample.deploy("USD", "USD", {'from': acct_adm})
-    shark_token = erc20Sample.deploy("Shark", "SHR", {'from': acct_adm})
+    usd_token = erc20Sample.at('0xf98cBAcf55e554ef225E7f4251001c2DFEED33Aa')#deploy("USD", "USD", {'from': acct_adm})
+    shark_token = erc20Sample.at('0xB0A1Afed4029540B9D5df9e9eC32B37EeFE864eE')#deploy("Shark", "SHR", {'from': acct_adm})
     treasury = Treasury.deploy(shark_token.address, {'from': acct_adm})
     market = Market.deploy(usd_token.address, treasury.address, acct_adm, {'from': acct_adm})
     treasury.transferOwnership(market.address, {'from': acct_adm})
