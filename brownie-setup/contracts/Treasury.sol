@@ -70,10 +70,11 @@ contract Treasury is Ownable, ReentrancyGuard {
      * @dev Creates a vesting contract.
      * @param token_ address of the ERC20 token contract
      */
-    function initialize (address token_) public {
-        require (!inited, "already inited");
+    function initialize (address token_) public {        
+        require (!inited, "already inited");        
         require(token_ != address(0x0));
         _token = IERC20(token_);
+        _transferOwnership(_msgSender());
         inited = true;
     }
 

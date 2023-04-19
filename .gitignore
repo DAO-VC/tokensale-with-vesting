@@ -11,4 +11,4 @@ out/
 .env*
 .secret
 brownie-setup/build
-brownie-setup/scripts
+brownie-setup/scripts/__pycache__

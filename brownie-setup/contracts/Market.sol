@@ -41,13 +41,15 @@ contract Market is AccessControl {
     function initialize (address _currency, 
                 address _productTreasury,
                 address _currencyTreasury) public {
-                    _setupRole(OPERATOR, msg.sender);
-                    _setupRole(WHITELISTED_ADDRESS, msg.sender);
-                    _setupRole(MANAGER, msg.sender);
-                    currency = IERC20(_currency);
-                    productTreasury = ITreasury(_productTreasury);
-                    currencyTreasury = _currencyTreasury;
-                    marketsCount = 0;
+        require (!inited, "already inited");
+        _setupRole(OPERATOR, msg.sender);
+        _setupRole(WHITELISTED_ADDRESS, msg.sender);
+        _setupRole(MANAGER, msg.sender);
+        currency = IERC20(_currency);
+        productTreasury = ITreasury(_productTreasury);
+        currencyTreasury = _currencyTreasury;
+        marketsCount = 0;
+        inited = false;
 
     }
 

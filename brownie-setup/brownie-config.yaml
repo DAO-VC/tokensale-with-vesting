@@ -10,7 +10,7 @@ compiler:
     version: 0.8.17
     remappings:
       - "@openzeppelin=OpenZeppelin/openzeppelin-contracts@4.8.0"
-      # - "@openzeppelin/contracts-upgradeable=OpenZeppelin/openzeppelin-contracts-upgradeable@4.8.0"
+      - "@openzeppelin/contracts-upgradeable=OpenZeppelin/openzeppelin-contracts-upgradeable@4.8.0"
 
 
 
