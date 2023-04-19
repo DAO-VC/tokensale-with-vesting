@@ -11,6 +11,7 @@ contract Market is AccessControl {
 
     bytes32 public constant OPERATOR = keccak256("OPERATOR");
     bytes32 public constant WHITELISTED_ADDRESS = keccak256("WHITELISTED_ADDRESS");
+    bytes32 public constant MANAGER = keccak("MANAGER");
 
     IERC20 public currency;
 
@@ -28,8 +29,9 @@ contract Market is AccessControl {
         uint256 price; 
         uint256 minOrderSize;
         uint256 maxOrderSize;
-        bool permissionLess; // true = igniring whitelist
+        bool permissionLess; // true = ignoring whitelist
         uint256 totalRaised;
+        bool isInternal;
     }
 
     mapping(uint256 => MarketInfo) markets;
@@ -39,6 +41,7 @@ contract Market is AccessControl {
                 address _currencyTreasury){
                     _setupRole(OPERATOR, msg.sender);
                     _setupRole(WHITELISTED_ADDRESS, msg.sender);
+                    _setupRole(MANAGER, msg.sender);
                     currency = IERC20(_currency);
                     productTreasury = ITreasury(_productTreasury);
                     currencyTreasury = _currencyTreasury;
@@ -59,7 +62,8 @@ contract Market is AccessControl {
                        uint256 _duration,
                        uint256 _slicePeriod,
                        bool _revocable,
-                       bool _permissionLess
+                       bool _permissionLess,
+                       bool _isInternal
                        ) public {
         require(hasRole(OPERATOR, msg.sender), "Caller is not an operator");
 
@@ -74,7 +78,8 @@ contract Market is AccessControl {
             _minOrderSize,
             _maxOrderSize,
             _permissionLess,
-            0
+            0,
+            _isInternal
         );
         
         marketsCount += 1;
@@ -84,8 +89,10 @@ contract Market is AccessControl {
     function migrateUser(uint256 _market, uint256 _amount, address _beneficiary) public {
         require(hasRole(OPERATOR, msg.sender), "Caller is not an operator");
         require(marketsCount > _market, "Incorect market");
+        if (markets[_market].isInternal) {
+            require(hasRole(MANAGER, _beneficiary), "User is not in white list");
+        }
         require(markets[_market].minOrderSize <= _amount && markets[_market].maxOrderSize >= _amount, "Min or max order size limit");
-
         (uint256 tgeAmount, uint256 vestingAmount) = calculateOrderSize(_market, _amount);
         productTreasury.withdrawTo(tgeAmount, _beneficiary);
         _migrateUser(_market, vestingAmount, _beneficiary);
@@ -95,6 +102,7 @@ contract Market is AccessControl {
         require(marketsCount > _market, "Incorect market");
         if (!markets[_market].permissionLess) {
             require(hasRole(WHITELISTED_ADDRESS, _beneficiary), "User is not in white list");
+            require(hasRole(WHITELISTED_ADDRESS, msg.sender), "User is not in white list");
         }
         require(markets[_market].minOrderSize <= _amount && markets[_market].maxOrderSize >= _amount, "Min or max order size limit");
         currency.transferFrom(msg.sender, currencyTreasury, calculateOrderPrice(_market, _amount));
@@ -128,13 +136,13 @@ contract Market is AccessControl {
         _price = _amount * markets[_market].price / 1e3; // price = price*1000, 0.01 = 10
     }
 
-    // @dev call getIndexCount, and claim in loop for all indexes
-    function claimForIndex(uint256 _index, uint256 marketId) public {
-            bytes32 vestingCalendarId = productTreasury.computeVestingScheduleIdForAddressAndIndex(msg.sender, _index);
-            uint256 avaibleForClaim = productTreasury.computeReleasableAmount(vestingCalendarId, marketId);
-            productTreasury.release(vestingCalendarId, avaibleForClaim, marketId);
-
-    }
+//    // @dev call getIndexCount, and claim in loop for all indexes
+//    function claimForIndex(uint256 _index, uint256 marketId) public {
+//            bytes32 vestingCalendarId = productTreasury.computeVestingScheduleIdForAddressAndIndex(msg.sender, _index);
+//            uint256 avaibleForClaim = productTreasury.computeReleasableAmount(vestingCalendarId, marketId);
+//            productTreasury.release(vestingCalendarId, avaibleForClaim, marketId);
+//
+//    }
 
     function avaibleToClaim(address _benefeciary, uint256 marketId) public view returns( uint256 _avaible ) {
         uint256 vestingScheduleCount = productTreasury.getVestingSchedulesCountByBeneficiary(msg.sender, marketId);
@@ -151,17 +159,20 @@ contract Market is AccessControl {
     event LogBytes(string msg, bytes32 data);
     // @dev Use careful - O(n) function
     function claim(uint256 marketId) public {
-            uint256 vestingScheduleCount = productTreasury.getVestingSchedulesCountByBeneficiary(msg.sender, marketId);
-            emit Log("vestingScheduleCount", vestingScheduleCount);
-            bytes32 vestingCalendarId;
-            uint256 avaibleForClaim;
-            for (uint256 calendarNumber = 0; calendarNumber < vestingScheduleCount; calendarNumber++) {
-                vestingCalendarId = productTreasury.computeVestingScheduleIdForAddressAndIndex(msg.sender, calendarNumber); //TODO add count
-                emit LogBytes("vestingCalendarId", vestingCalendarId);
-                avaibleForClaim = productTreasury.computeReleasableAmount(vestingCalendarId, marketId);
-                emit Log("avaibleForClaim", avaibleForClaim);
-                productTreasury.release(vestingCalendarId, avaibleForClaim, marketId);
-            }
+        if (!markets[_market].permissionLess) {
+            require(hasRole(WHITELISTED_ADDRESS, msg.sender), "User is not in white list");
+        }
+        if(markets[_market].isInternal){
+            require(hasRole(MANAGER, msg.sender), "User is not manager");
+        }
+        uint256 vestingScheduleCount = productTreasury.getVestingSchedulesCountByBeneficiary(msg.sender, marketId);
+        bytes32 vestingCalendarId;
+        uint256 avaibleForClaim;
+        for (uint256 calendarNumber = 0; calendarNumber < vestingScheduleCount; calendarNumber++) {
+            vestingCalendarId = productTreasury.computeVestingScheduleIdForAddressAndIndex(msg.sender, calendarNumber);
+            avaibleForClaim = productTreasury.computeReleasableAmount(vestingCalendarId, marketId);
+            productTreasury.release(vestingCalendarId, avaibleForClaim, marketId);
+        }
 
 
     }
@@ -186,9 +197,6 @@ contract Market is AccessControl {
 
     function getMarketInfo(uint256 _index) public view returns(MarketInfo memory) {
         return markets[_index];
-
     }
-
-
 }
 
