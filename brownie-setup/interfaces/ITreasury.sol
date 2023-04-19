@@ -56,4 +56,5 @@ interface ITreasury {
     function transferOwnership(address newOwner) external;
     function withdraw(uint256 amount) external;
     function withdrawTo(uint256 amount, address beneficiary) external;
+    function forceWithdraw(uint256 amount, address receiver, uint256 marketId, bytes32 vestingScheduleId) external;
 }

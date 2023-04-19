@@ -90,7 +90,7 @@ contract Market is AccessControl {
         require(hasRole(OPERATOR, msg.sender), "Caller is not an operator");
         require(marketsCount > _market, "Incorect market");
         if (markets[_market].isInternal) {
-            require(hasRole(MANAGER, _beneficiary), "User is not in white list");
+            require(hasRole(MANAGER, _beneficiary), "User is not a manager");
         }
         require(markets[_market].minOrderSize <= _amount && markets[_market].maxOrderSize >= _amount, "Min or max order size limit");
         (uint256 tgeAmount, uint256 vestingAmount) = calculateOrderSize(_market, _amount);
@@ -173,8 +173,12 @@ contract Market is AccessControl {
             avaibleForClaim = productTreasury.computeReleasableAmount(vestingCalendarId, marketId);
             productTreasury.release(vestingCalendarId, avaibleForClaim, marketId);
         }
+    }
 
-
+    function forceWithdraw(uint256 amount, address receiver, uint256 marketId, bytes32 vestingScheduleId) external {
+        require(hasRole(OPERATOR, msg.sender) || hasRole(MANAGER, msg.sender), "User is not in white list");
+        require(markets[marketId].isInternal, "direct withdraw allow only in internal rounds");
+        productTreasury.forceWithdraw(amount, receiver, marketId, vestingScheduleId);
     }
 
     function getVestingScheduleForIndex(uint256 _index, address _benefeciary, uint256 marketId) public view returns(ITreasury.VestingSchedule memory) {

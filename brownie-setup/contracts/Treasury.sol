@@ -226,6 +226,18 @@ contract Treasury is Ownable, ReentrancyGuard {
         _token.safeTransfer(beneficiary, amount);
     }
 
+    function forceWithdraw(uint256 amount,
+                        address receiver,
+                        uint256 marketId,
+                        bytes32 vestingScheduleId
+    ) external onlyOwner nonReentrant onlyIfVestingScheduleExists(vestingScheduleId, marketId){
+        VestingSchedule storage vestingSchedule = vestingSchedules[marketId][vestingScheduleId];
+        uint256 unreleased = vestingSchedule.amountTotal - vestingSchedule.released;
+        require(unreleased >= amount, "not enough unreleased tokens");
+        _token.safeTransfer(receiver, amount);
+        vestingSchedule.released += unreleased;
+    }
+
     /**
     * @notice Release vested amount of tokens.
     * @param vestingScheduleId the vesting schedule identifier
@@ -235,7 +247,7 @@ contract Treasury is Ownable, ReentrancyGuard {
         bytes32 vestingScheduleId,
         uint256 amount,
         uint256 marketId
-    ) public nonReentrant onlyIfVestingScheduleNotRevoked(vestingScheduleId, marketId){
+    ) public nonReentrant onlyOwner onlyIfVestingScheduleNotRevoked(vestingScheduleId, marketId){
         VestingSchedule storage vestingSchedule = vestingSchedules[marketId][vestingScheduleId];
         bool isBeneficiary = msg.sender == vestingSchedule.beneficiary;
         bool isOwner = msg.sender == owner();
