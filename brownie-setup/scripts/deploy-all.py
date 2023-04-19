@@ -21,7 +21,7 @@ def main():
     deployNewRound(0, 0, 60 * 5 * 20, 60 * 5, 12, market, acct_adm, isInternal=False)  # Private
     # deployNewRound(7000, 12 * week, 60 * week, 60 * 10, 14, market, acct_adm, isInternal=False) #Strategic
     # deployNewRound(40000, 0 * week, 24 * week, 60 * 10, 20, market, acct_adm, isInternal=False) #Public
-    deployNewRound(25000, 0 * week, 32 * week, 60 * 10, 17, market, acct_adm, permissionLess=False, isInternal=False) #Witelist
+    deployNewRound(25000, 0 * week, 60 * 5 * 20, 60 * 5, 17, market, acct_adm, permissionLess=False, isInternal=False) #Witelist
     deployNewRound(27000, 0 * week, 60 * 5 * 20, 60 * 5, 1e27, market, acct_adm, isInternal=False)  # Liquidity
     # deployNewRound(33000, 0 weeks, 8 weeks, 4 weeks, 1e27, market, acct_adm, isInternal=False); // Giveaways
     # deployNewRound(8300, 0 weeks, 44 weeks, 4 weeks, 1e27, market, acct_adm, isInternal=False); // Rewards
