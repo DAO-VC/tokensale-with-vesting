@@ -60,7 +60,7 @@ def main():
     encoded_initializer_function_treas = encode_function_data(treasury_logic.initialize, shark_token) #"Shark", "SHR", 1e9*1e18, acct_adm)
     # market_encoded_initializer_function = encode_function_data(initializer=market.store, 1)
     print(" deploying proxy_treasury:")    
-    proxy_treas = TransparentUpgradeableProxy.deploy(
+    treasury = TransparentUpgradeableProxy.deploy(
         treasury_logic.address,
         proxy_admin_treas.address,
         encoded_initializer_function_treas,
@@ -80,10 +80,10 @@ def main():
         {"from":  acct_adm},
     )
 
-    encoded_initializer_function_treas = encode_function_data(market_logic.initialize,usd_token.address, proxy_treas.address, shark_token.address) #"Shark", "SHR", 1e9*1e18, acct_adm)
+    encoded_initializer_function_market= encode_function_data(market_logic.initialize,usd_token.address, proxy_treas.address, shark_token.address) #"Shark", "SHR", 1e9*1e18, acct_adm)
     # market_encoded_initializer_function = encode_function_data(initializer=market.store, 1)
     print(" deploying proxy_market:")    
-    proxy_treas = TransparentUpgradeableProxy.deploy(
+    market= TransparentUpgradeableProxy.deploy(
         market_logic.address,
         proxy_admin_market.address,
         encoded_initializer_function_treas,
