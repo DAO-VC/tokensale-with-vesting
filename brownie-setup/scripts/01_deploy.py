@@ -4,7 +4,7 @@ from brownie import (
     Treasury,
     TransparentUpgradeableProxy,
     ProxyAdmin,
-    # erc20Sample,
+    erc20Sample,
     Coin,
     config,
     network,

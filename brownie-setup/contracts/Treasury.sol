@@ -71,7 +71,7 @@ contract Treasury is Ownable, ReentrancyGuard {
      * @param token_ address of the ERC20 token contract
      */
     function initialize (address token_) public {
-        require (!inited, "inited");
+        require (!inited, "already inited");
         require(token_ != address(0x0));
         _token = IERC20(token_);
         inited = true;
