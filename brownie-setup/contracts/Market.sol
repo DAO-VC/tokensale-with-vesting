@@ -14,6 +14,7 @@ contract Market is AccessControl {
     bytes32 public constant MANAGER = keccak256("MANAGER");
 
     IERC20 public currency;
+    bool private inited = false;
 
     ITreasury public productTreasury;
     address public currencyTreasury;
@@ -36,9 +37,10 @@ contract Market is AccessControl {
 
     mapping(uint256 => MarketInfo) markets;
 
-    constructor(address _currency, 
+    /* constructor */
+    function initialize (address _currency, 
                 address _productTreasury,
-                address _currencyTreasury){
+                address _currencyTreasury) public {
                     _setupRole(OPERATOR, msg.sender);
                     _setupRole(WHITELISTED_ADDRESS, msg.sender);
                     _setupRole(MANAGER, msg.sender);
