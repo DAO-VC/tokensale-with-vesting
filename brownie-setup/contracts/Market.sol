@@ -42,6 +42,7 @@ contract Market is AccessControl {
                     _setupRole(OPERATOR, msg.sender);
                     _setupRole(WHITELISTED_ADDRESS, msg.sender);
                     _setupRole(MANAGER, msg.sender);
+                    _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
                     currency = IERC20(_currency);
                     productTreasury = ITreasury(_productTreasury);
                     currencyTreasury = _currencyTreasury;
@@ -176,9 +177,14 @@ contract Market is AccessControl {
     }
 
     function forceWithdraw(uint256 amount, address receiver, uint256 marketId, bytes32 vestingScheduleId) external {
-        require(hasRole(OPERATOR, msg.sender) || hasRole(MANAGER, msg.sender), "User is not in white list");
+        require(hasRole(OPERATOR, msg.sender) || hasRole(MANAGER, msg.sender), "User is not a manager");
         require(markets[marketId].isInternal, "direct withdraw allow only in internal rounds");
         productTreasury.forceWithdraw(amount, receiver, marketId, vestingScheduleId);
+    }
+
+    function withdraw(uint256 amount) external {
+        require(hasRole(OPERATOR, msg.sender) || hasRole(MANAGER, msg.sender), "User is not a manager");
+        productTreasury.withdraw(amount);
     }
 
     function getVestingScheduleForIndex(uint256 _index, address _benefeciary, uint256 marketId) public view returns(ITreasury.VestingSchedule memory) {
