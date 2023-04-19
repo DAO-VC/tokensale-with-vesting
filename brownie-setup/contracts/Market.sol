@@ -11,7 +11,7 @@ contract Market is AccessControl {
 
     bytes32 public constant OPERATOR = keccak256("OPERATOR");
     bytes32 public constant WHITELISTED_ADDRESS = keccak256("WHITELISTED_ADDRESS");
-    bytes32 public constant MANAGER = keccak("MANAGER");
+    bytes32 public constant MANAGER = keccak256("MANAGER");
 
     IERC20 public currency;
 
@@ -159,10 +159,10 @@ contract Market is AccessControl {
     event LogBytes(string msg, bytes32 data);
     // @dev Use careful - O(n) function
     function claim(uint256 marketId) public {
-        if (!markets[_market].permissionLess) {
+        if (!markets[marketId].permissionLess) {
             require(hasRole(WHITELISTED_ADDRESS, msg.sender), "User is not in white list");
         }
-        if(markets[_market].isInternal){
+        if(markets[marketId].isInternal){
             require(hasRole(MANAGER, msg.sender), "User is not manager");
         }
         uint256 vestingScheduleCount = productTreasury.getVestingSchedulesCountByBeneficiary(msg.sender, marketId);
