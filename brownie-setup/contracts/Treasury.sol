@@ -40,8 +40,8 @@ contract Treasury is Ownable, ReentrancyGuard {
     }
 
     // address of the ERC20 token
-    IERC20 immutable private _token;
-
+    IERC20  private _token;
+    bool private inited = false;
     bytes32[] private vestingSchedulesIds;
     mapping(uint256 => mapping(bytes32 => VestingSchedule)) private vestingSchedules;
     uint256 private vestingSchedulesTotalAmount;
@@ -70,9 +70,11 @@ contract Treasury is Ownable, ReentrancyGuard {
      * @dev Creates a vesting contract.
      * @param token_ address of the ERC20 token contract
      */
-    constructor(address token_) {
+    function initialize (address token_) public {
+        require (!inited, "inited");
         require(token_ != address(0x0));
         _token = IERC20(token_);
+        inited = true;
     }
 
     receive() external payable {}
