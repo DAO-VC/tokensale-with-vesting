@@ -188,45 +188,15 @@ contract Treasury is Ownable, ReentrancyGuard {
     }
 
     /**
-    * @notice Revokes the vesting schedule for given identifier.
-    * @param vestingScheduleId the vesting schedule identifier
-    */
-    function revoke(bytes32 vestingScheduleId, uint256 marketId) nonReentrant
-        public
-        onlyOwner
-        onlyIfVestingScheduleNotRevoked(vestingScheduleId, marketId){
-        VestingSchedule storage vestingSchedule = vestingSchedules[marketId][vestingScheduleId];
-        uint256 vestedAmount = _computeReleasableAmount(vestingSchedule);
-        if(vestedAmount > 0){
-            release(vestingScheduleId, vestedAmount, marketId);
-        }
-        uint256 unreleased = vestingSchedule.amountTotal - vestingSchedule.released;
-        vestingSchedulesTotalAmount = vestingSchedulesTotalAmount - unreleased;
-        vestingSchedule.revoked = true;
-    }
-
-    /**
     * @notice Withdraw the specified amount if possible.
     * @param amount the amount to withdraw
     */
-    function withdraw(uint256 amount)
+    function withdraw(uint256 amount, address receiver)
         public
         nonReentrant
         onlyOwner{
         require(this.getWithdrawableAmount() >= amount, "TokenVesting: not enough withdrawable funds");
-        _token.safeTransfer(owner(), amount);
-    }
-
-
-    function withdrawTo(
-        uint256 amount,
-        address beneficiary
-    )
-        public
-        nonReentrant
-        onlyOwner{    
-        require(this.getWithdrawableAmount() >= amount, "TokenVesting: not enough withdrawable funds");
-        _token.safeTransfer(beneficiary, amount);
+        _token.safeTransfer(receiver, amount);
     }
 
     function forceWithdraw(uint256 amount,
@@ -235,10 +205,11 @@ contract Treasury is Ownable, ReentrancyGuard {
                         bytes32 vestingScheduleId
     ) external onlyOwner nonReentrant onlyIfVestingScheduleExists(vestingScheduleId, marketId){
         VestingSchedule storage vestingSchedule = vestingSchedules[marketId][vestingScheduleId];
-        uint256 unreleased = vestingSchedule.amountTotal - vestingSchedule.released;
-        require(unreleased >= amount, "not enough unreleased tokens");
+        uint256 computeReleasable = _computeReleasableAmount(vestingSchedule);
+        require(computeReleasable >= amount, "not enough released tokens");
+        vestingSchedule.released = vestingSchedule.released + amount;
         _token.safeTransfer(receiver, amount);
-        vestingSchedule.released += unreleased;
+        vestingSchedule.released += amount;
     }
 
     /**
@@ -365,48 +336,6 @@ contract Treasury is Ownable, ReentrancyGuard {
             return vestedAmount;
         }
     }
-
-    /** test
-
-    */
-    event vestSchedule(string msg, VestingSchedule sced);
-    function computeReleasableAmountTest(bytes32 vestingScheduleId, uint256 marketId)
-        public
-        onlyIfVestingScheduleNotRevoked(vestingScheduleId, marketId)
-        returns(uint256){
-        VestingSchedule storage vestingSchedule = vestingSchedules[marketId][vestingScheduleId];
-        emit vestSchedule("test", vestingSchedule);
-        return _computeReleasableAmountTest(vestingSchedule);
-    }
-
-    event DataEv(string msg, uint256 value);
-    function _computeReleasableAmountTest(VestingSchedule memory vestingSchedule)
-    internal
-    returns(uint256){
-        uint256 currentTime = getCurrentTime();
-        emit DataEv("CURRENT TIME", currentTime);
-        if ((currentTime <= vestingSchedule.cliff + vestingSchedule.start) || vestingSchedule.revoked) { // (currentTime < vestingSchedule.cliff)??             emit DataEv("time < start + cliff || revoked", vestingSchedule.cliff + vestingSchedule.start);
-            emit DataEv("time < start + cliff || revoked", vestingSchedule.cliff + vestingSchedule.start);
-            return 0;
-        } else if (currentTime >= vestingSchedule.start + vestingSchedule.duration) {
-            emit DataEv("time > start + duration ", vestingSchedule.start + vestingSchedule.duration);
-            return vestingSchedule.amountTotal - vestingSchedule.released;
-        } else {
-            uint256 timeFromStart = currentTime - (vestingSchedule.start + vestingSchedule.cliff); // TODO CLIFF CHECK
-            emit DataEv("TIME FROM START", timeFromStart);
-            uint256 secondsPerSlice = vestingSchedule.slicePeriodSeconds;
-            uint256 vestedSlicePeriods = timeFromStart / secondsPerSlice;
-            emit DataEv("SLICED PERIODS: timeFromStart / secondsPerSlice", vestedSlicePeriods);
-            uint256 vestedSeconds = vestedSlicePeriods * secondsPerSlice;
-            emit DataEv("VESTED SECONDS", vestedSeconds);
-            uint256 vestedAmount = vestingSchedule.amountTotal * vestedSeconds / vestingSchedule.duration;
-            emit DataEv("VESTED AMOUNT", vestedAmount);
-            vestedAmount = vestedAmount - vestingSchedule.released;
-            emit DataEv("VESTED AMOUNT RESULT (-released)", vestedAmount);
-            return vestedAmount;
-        }
-    }
-
 
     function getCurrentTime()
         internal

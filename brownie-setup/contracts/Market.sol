@@ -45,6 +45,7 @@ contract Market is AccessControl {
         _setupRole(OPERATOR, msg.sender);
         _setupRole(WHITELISTED_ADDRESS, msg.sender);
         _setupRole(MANAGER, msg.sender);
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         currency = IERC20(_currency);
         productTreasury = ITreasury(_productTreasury);
         currencyTreasury = _currencyTreasury;
@@ -91,7 +92,7 @@ contract Market is AccessControl {
     }
 
     function migrateUser(uint256 _market, uint256 _amount, address _beneficiary) public {
-        require(hasRole(OPERATOR, msg.sender), "Caller is not an operator");
+        require(hasRole(OPERATOR, msg.sender) || hasRole(MANAGER, msg.sender), "Caller is not an operator");
         require(marketsCount > _market, "Incorect market");
         if (markets[_market].isInternal) {
             require(hasRole(MANAGER, _beneficiary), "User is not a manager");
@@ -140,14 +141,6 @@ contract Market is AccessControl {
         _price = _amount * markets[_market].price / 1e3; // price = price*1000, 0.01 = 10
     }
 
-//    // @dev call getIndexCount, and claim in loop for all indexes
-//    function claimForIndex(uint256 _index, uint256 marketId) public {
-//            bytes32 vestingCalendarId = productTreasury.computeVestingScheduleIdForAddressAndIndex(msg.sender, _index);
-//            uint256 avaibleForClaim = productTreasury.computeReleasableAmount(vestingCalendarId, marketId);
-//            productTreasury.release(vestingCalendarId, avaibleForClaim, marketId);
-//
-//    }
-
     function avaibleToClaim(address _benefeciary, uint256 marketId) public view returns( uint256 _avaible ) {
         uint256 vestingScheduleCount = productTreasury.getVestingSchedulesCountByBeneficiary(msg.sender, marketId);
         bytes32 vestingCalendarId;
@@ -159,8 +152,6 @@ contract Market is AccessControl {
         return avaibleForClaim;
     }
 
-    event Log(string msg, uint256 data);
-    event LogBytes(string msg, bytes32 data);
     // @dev Use careful - O(n) function
     function claim(uint256 marketId) public {
         if (!markets[marketId].permissionLess) {
@@ -180,9 +171,16 @@ contract Market is AccessControl {
     }
 
     function forceWithdraw(uint256 amount, address receiver, uint256 marketId, bytes32 vestingScheduleId) external {
-        require(hasRole(OPERATOR, msg.sender) || hasRole(MANAGER, msg.sender), "User is not in white list");
         require(markets[marketId].isInternal, "direct withdraw allow only in internal rounds");
+        ITreasury.VestingSchedule memory vesting = productTreasury.getVestingSchedule(vestingScheduleId, marketId);
+        require(hasRole(MANAGER, vesting.beneficiary), "Beneficiary is not a manager");
+        require(hasRole(OPERATOR, msg.sender) || hasRole(MANAGER, msg.sender), "User is not a manager");
         productTreasury.forceWithdraw(amount, receiver, marketId, vestingScheduleId);
+    }
+
+    function withdraw(uint256 amount) external {
+        require(hasRole(OPERATOR, msg.sender) || hasRole(MANAGER, msg.sender), "User is not a manager");
+        productTreasury.withdraw(amount);
     }
 
     function getVestingScheduleForIndex(uint256 _index, address _benefeciary, uint256 marketId) public view returns(ITreasury.VestingSchedule memory) {
