@@ -7,13 +7,12 @@ import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/utils/StorageSlot.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 
-import "./lib/ERC20Hooks.sol";
 import "./lib/errors.sol";
 
 /**
  * @dev {ERC20} Coin token
  */
-contract Coin is AccessControlEnumerable, Pausable, ERC20Burnable,  ERC20Hooks {
+contract Coin is AccessControlEnumerable, Pausable, ERC20Burnable {
     bytes32 public constant MANAGE_ROLE = keccak256("MANAGE_ROLE");
 
     constructor(
@@ -47,26 +46,6 @@ contract Coin is AccessControlEnumerable, Pausable, ERC20Burnable,  ERC20Hooks {
         _unpause();
     }
 
-    /**
-     * @dev See {ERC20Hooks-_enableHooks}.
-     */
-    function enableHooks(bool enabled) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        _enableHooks(enabled);
-    }
-
-    /**
-     * @dev See {ERC20Hooks-_addHook}.
-     */
-    function addHook(address hook) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        _addHook(hook);
-    }
-
-    /**
-     * @dev See {ERC20Hooks-_removeHook}.
-     */
-    function removeHook(address hook) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        _removeHook(hook);
-    }
 
     /**
      * @dev See {ERC20-_beforeTokenTransfer}.
@@ -85,26 +64,7 @@ contract Coin is AccessControlEnumerable, Pausable, ERC20Burnable,  ERC20Hooks {
 
         if (paused()) revert TransferWhilePaused();
 
-        _applyHooks(_msgSender(), from, to, amount);
+        
     }
 
-    /**
-     * @dev Revoke tokens from the accounts of "bad players" marked as "blocked" by a hook
-     * @notice During a call, all hooks will be temporarily disabled
-     */
-    function revokeBlocked(
-        address hook,
-        address revokeTo,
-        address[] memory holders
-    ) external onlyRole(DEFAULT_ADMIN_ROLE) withoutHooks {
-        if (!hookExists(hook)) revert NotExists();
-        bool[] memory blocked = IHook(hook).getBlocked(holders);
-        if (blocked.length != holders.length) revert HookWrongRespond();
-        for (uint256 i = 0; i < holders.length; i++) {
-            address holder = holders[i];
-            if (blocked[i]) {
-                _transfer(holders[i], revokeTo, balanceOf(holder));
-            }
-        }
-    }
 }

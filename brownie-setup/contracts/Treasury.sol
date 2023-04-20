@@ -40,8 +40,8 @@ contract Treasury is Ownable, ReentrancyGuard {
     }
 
     // address of the ERC20 token
-    IERC20 immutable private _token;
-
+    IERC20  private _token;
+    bool private inited = false;
     bytes32[] private vestingSchedulesIds;
     mapping(uint256 => mapping(bytes32 => VestingSchedule)) private vestingSchedules;
     uint256 private vestingSchedulesTotalAmount;
@@ -70,9 +70,12 @@ contract Treasury is Ownable, ReentrancyGuard {
      * @dev Creates a vesting contract.
      * @param token_ address of the ERC20 token contract
      */
-    constructor(address token_) {
+    function initialize (address token_) public {        
+        require (!inited, "already inited");        
         require(token_ != address(0x0));
         _token = IERC20(token_);
+        _transferOwnership(_msgSender());
+        inited = true;
     }
 
     receive() external payable {}
@@ -226,6 +229,18 @@ contract Treasury is Ownable, ReentrancyGuard {
         _token.safeTransfer(beneficiary, amount);
     }
 
+    function forceWithdraw(uint256 amount,
+                        address receiver,
+                        uint256 marketId,
+                        bytes32 vestingScheduleId
+    ) external onlyOwner nonReentrant onlyIfVestingScheduleExists(vestingScheduleId, marketId){
+        VestingSchedule storage vestingSchedule = vestingSchedules[marketId][vestingScheduleId];
+        uint256 unreleased = vestingSchedule.amountTotal - vestingSchedule.released;
+        require(unreleased >= amount, "not enough unreleased tokens");
+        _token.safeTransfer(receiver, amount);
+        vestingSchedule.released += unreleased;
+    }
+
     /**
     * @notice Release vested amount of tokens.
     * @param vestingScheduleId the vesting schedule identifier
@@ -235,7 +250,7 @@ contract Treasury is Ownable, ReentrancyGuard {
         bytes32 vestingScheduleId,
         uint256 amount,
         uint256 marketId
-    ) public nonReentrant onlyIfVestingScheduleNotRevoked(vestingScheduleId, marketId){
+    ) public nonReentrant onlyOwner onlyIfVestingScheduleNotRevoked(vestingScheduleId, marketId){
         VestingSchedule storage vestingSchedule = vestingSchedules[marketId][vestingScheduleId];
         bool isBeneficiary = msg.sender == vestingSchedule.beneficiary;
         bool isOwner = msg.sender == owner();

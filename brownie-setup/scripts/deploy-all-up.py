@@ -58,7 +58,7 @@ def main():
     # print (proxy_coin.error(), proxy_coin.traceback() )
 
     
-    print(accounts[0], "deploying market:")
+    print(accounts[0], "deploying market_logic:")
     market_logic = Market.deploy({'from': acct_adm, "gas_limit": 10000000})
     
      
@@ -68,23 +68,26 @@ def main():
         {"from":  acct_adm},
     )
 
-    encoded_initializer_function_market= encode_function_data(market_logic.initialize,usd_token.address, treasury.address, shark_token.address) #"Shark", "SHR", 1e9*1e18, acct_adm)
+    encoded_initializer_function_market= encode_function_data(market_logic.initialize,shark_token.address, treasury.address, acct_adm.address) #"Shark", "SHR", 1e9*1e18, acct_adm)
     # market_encoded_initializer_function = encode_function_data(initializer=market.store, 1)
     print(" deploying proxy_market:")    
+
     market= TransparentUpgradeableProxy.deploy(
-        market_logic.address,
-        proxy_admin_market.address,
-        encoded_initializer_function_treas,
-        {"from": acct_adm}, # "gas_limit": 1000000
-    )
+            market_logic.address,
+            proxy_admin_market.address,
+            encoded_initializer_function_market,
+            {"from": acct_adm}, # "gas_limit": 1000000
+        )
     
-    treasury.transferOwnership(market.address, {'from': acct_adm})
-    deployNewRound(3000, 12 * week, 60 * week, 60 * 10, 10, market, acct_adm) #seed
-    deployNewRound(0, 0, 60 * 5 * 20, 60 * 5, 12, market, acct_adm) #Privat
-    deployNewRound(7000, 12 * week, 60 * week, 60 * 10, 14, market, acct_adm) #Strategic
-    deployNewRound(40000, 0 * week, 24 * week, 60 * 10, 20, market, acct_adm) #Public
-    deployNewRound(25000, 0 * week, 32 * week, 60 * 10, 17, market, acct_adm) #Witelist
-    shark_token.mint(treasury.address, 1_000_000_000e18, {'from': acct_adm})
+    treasuryP = Contract.from_abi("Treasury", treasury.address, treasury_logic.abi)
+    treasuryP.transferOwnership(market.address, {'from': acct_adm})
+    marketP = Contract.from_abi("Market", market.address, market_logic.abi)
+    deployNewRound(3000, 12 * week, 60 * week, 60 * 10, 10, marketP, acct_adm) #seed
+    deployNewRound(0, 0, 60 * 5 * 20, 60 * 5, 12, marketP, acct_adm) #Privat
+    deployNewRound(7000, 12 * week, 60 * week, 60 * 10, 14, marketP, acct_adm) #Strategic
+    deployNewRound(40000, 0 * week, 24 * week, 60 * 10, 20, marketP, acct_adm) #Public
+    deployNewRound(25000, 0 * week, 32 * week, 60 * 10, 17, marketP, acct_adm) #Witelist
+    shark_token.transfer(treasury.address, 1_000_000_000e18, {'from': acct_adm})
     usd_token.mint('0x5aCD656a61d4b2AAB249C3Fe3129E3867ab99283', 1_000_000e18, {'from': acct_adm})
 
 
@@ -93,4 +96,4 @@ def deployNewRound(_tge, _cliff, _duration, _slice, _price, market, acct_adm):
 
 
 def deployRound(price, minOrderSize, maxOrderSize, tgeRatio, start, cliff, duration, slicePeriod, revocable, permisionLess, market, acct_adm):
-    market.deployMarket(price, minOrderSize, maxOrderSize, tgeRatio, start, cliff, duration, slicePeriod, revocable, permisionLess, {'from': acct_adm})
+    market.deployMarket(price, minOrderSize, maxOrderSize, tgeRatio, start, cliff, duration, slicePeriod, revocable, permisionLess, False, {'from': acct_adm})
