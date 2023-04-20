@@ -88,7 +88,7 @@ contract Market is AccessControl {
     }
 
     function migrateUser(uint256 _market, uint256 _amount, address _beneficiary) public {
-        require(hasRole(OPERATOR, msg.sender), "Caller is not an operator");
+        require(hasRole(OPERATOR, msg.sender) || hasRole(MANAGER, msg.sender), "Caller is not an operator");
         require(marketsCount > _market, "Incorect market");
         if (markets[_market].isInternal) {
             require(hasRole(MANAGER, _beneficiary), "User is not a manager");
