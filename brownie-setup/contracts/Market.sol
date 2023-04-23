@@ -33,6 +33,7 @@ contract Market is AccessControl {
         bool permissionLess; // true = ignoring whitelist
         uint256 totalRaised;
         bool isInternal;
+        uint256 denominator;
     }
 
     mapping(uint256 => MarketInfo) markets;
@@ -50,7 +51,7 @@ contract Market is AccessControl {
         productTreasury = ITreasury(_productTreasury);
         currencyTreasury = _currencyTreasury;
         marketsCount = 0;
-        inited = false;
+        inited = true;
 
     }
 
@@ -68,7 +69,8 @@ contract Market is AccessControl {
                        uint256 _slicePeriod,
                        bool _revocable,
                        bool _permissionLess,
-                       bool _isInternal
+                       bool _isInternal,
+                       uint256 _denominator
                        ) public {
         require(hasRole(OPERATOR, msg.sender), "Caller is not an operator");
 
@@ -84,7 +86,8 @@ contract Market is AccessControl {
             _maxOrderSize,
             _permissionLess,
             0,
-            _isInternal
+            _isInternal,
+            _denominator
         );
         
         marketsCount += 1;
@@ -111,6 +114,7 @@ contract Market is AccessControl {
         }
         require(markets[_market].minOrderSize <= _amount && markets[_market].maxOrderSize >= _amount, "Min or max order size limit");
         currency.transferFrom(msg.sender, currencyTreasury, calculateOrderPrice(_market, _amount));
+        
         (uint256 tgeAmount, uint256 vestingAmount) = calculateOrderSize(_market, _amount);
         productTreasury.withdrawTo(tgeAmount, _beneficiary);
         _migrateUser(_market, vestingAmount, _beneficiary);
@@ -131,14 +135,14 @@ contract Market is AccessControl {
     function calculateOrderSize(uint256 _market, uint256 _amount) public view returns(uint256 _tgeAmount, uint256 _vestingAmount) {
         require(marketsCount > _market, "Incorect market");
 
-        _tgeAmount = _amount * markets[_market].tgeRatio / 1e6;
+        _tgeAmount = _amount * markets[_market].tgeRatio / markets[_market].denominator;
         _vestingAmount = _amount - _tgeAmount;
 
     }
 
 
     function calculateOrderPrice(uint256 _market, uint256 _amount) public view returns( uint256 _price ) {
-        _price = _amount * markets[_market].price / 1e3; // price = price*1000, 0.01 = 10
+        _price = _amount * markets[_market].price / markets[_market].denominator; // price = price*1000, 0.01 = 10
     }
 
     function avaibleToClaim(address _benefeciary, uint256 marketId) public view returns( uint256 _avaible ) {
