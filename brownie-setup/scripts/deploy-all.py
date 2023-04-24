@@ -14,9 +14,9 @@ minOrderSize=1e18 / 0.017
 maxOrderSize=10_000e18 / 0.017
  
 week = 604800
-month_sec = 60*5 # 5 min - test # 365.25* 24*60*60 / 12
-start =  datetime.datetime.now ()#1681806409
-                                #1682161043.541216
+month_sec =  365.25* 24*60*60 / 12
+start =  datetime.fromisoformat('2023-05-03 17:00:00+00:00')
+#1682161043.541216
 start = math.floor(start.timestamp())
 print (start)
 
@@ -30,6 +30,7 @@ def main():
     treasury = Treasury.deploy(shark_token.address, {'from': acct_adm})
     market = Market.deploy(usd_token.address, treasury.address, beneficiary, {'from': acct_adm})
     treasury.transferOwnership(market.address, {'from': acct_adm})
+
     deployNewRound(30000,  month_sec * 3, month_sec * 12, month_sec,     10, market, acct_adm,  isInternal=True) #seed
     deployNewRound(50000,  month_sec * 3, month_sec * 12, month_sec,     12, market, acct_adm, isInternal=True)  # Private
     deployNewRound(70000,  month_sec * 3, month_sec * 12, month_sec,     14, market, acct_adm, isInternal=True) #Strategic
@@ -41,6 +42,7 @@ def main():
     # deployNewRound(40000, 0 * week, 24 * week, 60 * 10, 20, market, acct_adm, isInternal=False) #Public
     # deployNewRound(25000, 0 * week, 60 * 5 * 20, 60 * 5, 17, market, acct_adm, permissionLess=False, isInternal=False) #Witelist
     # deployNewRound(27000, 0 * week, 60 * 5 * 20, 60 * 5, 1e27, market, acct_adm, isInternal=False)  # Liquidity
+
     # deployNewRound(33000, 0 weeks, 8 weeks, 4 weeks, 1e27, market, acct_adm, isInternal=False); // Giveaways
     # deployNewRound(8300, 0 weeks, 44 weeks, 4 weeks, 1e27, market, acct_adm, isInternal=False); // Rewards
     # deployNewRound(5000, 0 weeks, 44 weeks, 4 weeks, 1e27, market, acct_adm, isInternal=False); // Marketing
@@ -55,13 +57,16 @@ def main():
     market.grantRole('07f9e8c07c8b73fe513688ff4c27d5672674617e83dca1f12879f7b9a12c25de', '0x5aCD656a61d4b2AAB249C3Fe3129E3867ab99283')
     market.grantRole('07f9e8c07c8b73fe513688ff4c27d5672674617e83dca1f12879f7b9a12c25de', '0xB09ecEe4335B97CbE76521c317081Bccf83d6190')
     market.grantRole('07f9e8c07c8b73fe513688ff4c27d5672674617e83dca1f12879f7b9a12c25de', '0x1892de64127590BF0a8a0B989ff342681286143B')
+    market.grantRole('07f9e8c07c8b73fe513688ff4c27d5672674617e83dca1f12879f7b9a12c25de', '0xB09ecEe4335B97CbE76521c317081Bccf83d6190')
     market.grantRole('af290d8680820aad922855f39b306097b20e28774d6c1ad35a20325630c3a02c', '0xfb592B5947798B1cfcDaD72619a8e6eE98924992')
     market.grantRole('af290d8680820aad922855f39b306097b20e28774d6c1ad35a20325630c3a02c', '0x5aCD656a61d4b2AAB249C3Fe3129E3867ab99283')
     market.grantRole('af290d8680820aad922855f39b306097b20e28774d6c1ad35a20325630c3a02c', '0xB09ecEe4335B97CbE76521c317081Bccf83d6190')
     market.grantRole('af290d8680820aad922855f39b306097b20e28774d6c1ad35a20325630c3a02c', '0x1892de64127590BF0a8a0B989ff342681286143B')
-
+    market.grantRole('07f9e8c07c8b73fe513688ff4c27d5672674617e83dca1f12879f7b9a12c25de', '0xB09ecEe4335B97CbE76521c317081Bccf83d6190')
+    market.grantRole('af290d8680820aad922855f39b306097b20e28774d6c1ad35a20325630c3a02c', '0xB09ecEe4335B97CbE76521c317081Bccf83d6190')
 
 def deployNewRound(_tge, _cliff, _duration, _slice, _price, market, acct_adm, start=start, minOrderSize=minOrderSize, maxOrderSize=maxOrderSize, revocable=False, permissionLess=True, isInternal=True):
+
     deployRound(_price, minOrderSize, maxOrderSize, _tge, start, _cliff, _duration, _slice, revocable, permissionLess, market, isInternal, acct_adm)
 
 

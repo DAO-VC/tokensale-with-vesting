@@ -42,9 +42,11 @@ def market(admin, usd_token, treasury, Market):
 
 def test_strait_flow(admin, usd_token, shark_token, treasury, market, user):
     assert usd_token.balanceOf(user) == 1_000e18
-    buy = market.buy(1, 1000e18, user.address, {'from': user})  # set desired shark token amounts
+    buy = market.buy(1, 83e18, user.address, {'from': user})  # set desired shark token amounts
+    vestsched = market.getVestingSchedules(user, 1)
     balance = usd_token.balanceOf(user)/1e18
-    assert balance == 988
+    total = market.getMarketInfo(1)
+    assert balance == 987
     assert usd_token.balanceOf(admin) == 1000012e18
     assert shark_token.balanceOf(user) == 50e18
 
