@@ -11,12 +11,12 @@ contract Migrator is Ownable{
         Market = IMarket(_Market);
     }
 
-    function MigrateUsersList(address[] calldata _usersList, uint256[] calldata _amountList, address[] calldata _beneficiary) public onlyOwner{
-        require(_usersList.length == _amountList.length, "Arrays size didn't match");
-        require(_amountList.length == _usersList.length, "Arrays size didn't match");
+    function MigrateUsersList(uint256[] calldata marketsIndex, uint256[] calldata _amountList, address[] calldata _beneficiary) public onlyOwner{
+        require(marketsIndex.length == _amountList.length, "Arrays size didn't match");
+        require(_amountList.length == _beneficiary.length, "Arrays size didn't match");
         uint256 i = 0;
-        for (i = 0; i < _usersList.length; i++){
-            Market.migrateUser(_amountList[i], _amountList[i], _beneficiary[i]);
+        for (i = 0; i < _beneficiary.length; i++){
+            Market.migrateUser(marketsIndex[i], _amountList[i], _beneficiary[i]);
         }
     }
 }
