@@ -5,12 +5,14 @@ import math
 week = 604800
 
 
-start = 1681807247
+# start = 1681807247
 revocable = False
-minOrderSize = 1
-maxOrderSize = 10e27
-permissionLess = True
 
+permissionLess = True
+beneficiary = "0xF3f66b9f814f2EA86540C5b1C5DFc23bde0d9563"
+minOrderSize=1e18 / 0.017
+maxOrderSize=10_000e18 / 0.017
+ 
 week = 604800
 month_sec = 60*5 # 5 min - test # 365.25* 24*60*60 / 12
 start =  datetime.datetime.now ()#1681806409
@@ -26,7 +28,7 @@ def main():
     # shark_token = Coin.deploy("Shark", "SHR", 1e27, acct_adm,  {'from': acct_adm})
     
     treasury = Treasury.deploy(shark_token.address, {'from': acct_adm})
-    market = Market.deploy(usd_token.address, treasury.address, acct_adm, {'from': acct_adm})
+    market = Market.deploy(usd_token.address, treasury.address, beneficiary, {'from': acct_adm})
     treasury.transferOwnership(market.address, {'from': acct_adm})
     deployNewRound(30000,  month_sec * 3, month_sec * 12, month_sec,     10, market, acct_adm,  isInternal=True) #seed
     deployNewRound(50000,  month_sec * 3, month_sec * 12, month_sec,     12, market, acct_adm, isInternal=True)  # Private
@@ -59,7 +61,7 @@ def main():
     market.grantRole('af290d8680820aad922855f39b306097b20e28774d6c1ad35a20325630c3a02c', '0x1892de64127590BF0a8a0B989ff342681286143B')
 
 
-def deployNewRound(_tge, _cliff, _duration, _slice, _price, market, acct_adm, start=start, minOrderSize=1e18, maxOrderSize=10_000e18, revocable=False, permissionLess=True, isInternal=True):
+def deployNewRound(_tge, _cliff, _duration, _slice, _price, market, acct_adm, start=start, minOrderSize=minOrderSize, maxOrderSize=maxOrderSize, revocable=False, permissionLess=True, isInternal=True):
     deployRound(_price, minOrderSize, maxOrderSize, _tge, start, _cliff, _duration, _slice, revocable, permissionLess, market, isInternal, acct_adm)
 
 
