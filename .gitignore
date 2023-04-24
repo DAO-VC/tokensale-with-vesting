@@ -10,3 +10,5 @@ out/
 # Dotenv file
 .env
 .secret
+brownie-setup/build
+brownie-setup/scripts/__pycache__
