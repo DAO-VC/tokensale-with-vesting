@@ -37,20 +37,18 @@ contract Market is AccessControl {
 
     mapping(uint256 => MarketInfo) markets;
 
-    /* constructor */
-    function initialize (address _currency, 
+    constructor(address _currency, 
                 address _productTreasury,
-                address _currencyTreasury) public {
-        require (!inited, "already inited");
-        _setupRole(OPERATOR, msg.sender);
-        _setupRole(WHITELISTED_ADDRESS, msg.sender);
-        _setupRole(MANAGER, msg.sender);
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        currency = IERC20(_currency);
-        productTreasury = ITreasury(_productTreasury);
-        currencyTreasury = _currencyTreasury;
-        marketsCount = 0;
-        inited = false;
+                address _currencyTreasury){
+                    _setupRole(OPERATOR, msg.sender);
+                    _setupRole(WHITELISTED_ADDRESS, msg.sender);
+                    _setupRole(MANAGER, msg.sender);
+                    _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+                    currency = IERC20(_currency);
+                    productTreasury = ITreasury(_productTreasury);
+                    currencyTreasury = _currencyTreasury;
+                    marketsCount = 0;
+
 
     }
 
@@ -98,9 +96,9 @@ contract Market is AccessControl {
             require(hasRole(MANAGER, _beneficiary), "User is not a manager");
         }
         require(markets[_market].minOrderSize <= _amount && markets[_market].maxOrderSize >= _amount, "Min or max order size limit");
-        (uint256 tgeAmount, uint256 vestingAmount) = calculateOrderSize(_market, _amount);
-        productTreasury.withdrawTo(tgeAmount, _beneficiary);
-        _migrateUser(_market, vestingAmount, _beneficiary);
+//        (uint256 tgeAmount, uint256 vestingAmount) = calculateOrderSize(_market, _amount);
+//         productTreasury.withdrawTo(tgeAmount, _beneficiary);
+        _migrateUser(_market, _amount, _beneficiary);
     }
 
     function buy(uint256 _market, uint256 _amount, address _beneficiary) public {
@@ -111,9 +109,9 @@ contract Market is AccessControl {
         }
         require(markets[_market].minOrderSize <= _amount && markets[_market].maxOrderSize >= _amount, "Min or max order size limit");
         currency.transferFrom(msg.sender, currencyTreasury, calculateOrderPrice(_market, _amount));
-        (uint256 tgeAmount, uint256 vestingAmount) = calculateOrderSize(_market, _amount);
-        productTreasury.withdrawTo(tgeAmount, _beneficiary);
-        _migrateUser(_market, vestingAmount, _beneficiary);
+//        (uint256 tgeAmount, uint256 vestingAmount) = calculateOrderSize(_market, _amount);
+        // productTreasury.withdrawTo(tgeAmount, _beneficiary);
+        _migrateUser(_market, _amount, _beneficiary);
     }
 
     function _migrateUser(uint256 _market, uint256 _amount, address _beneficiary) private {
@@ -160,10 +158,21 @@ contract Market is AccessControl {
         if(markets[marketId].isInternal){
             require(hasRole(MANAGER, msg.sender), "User is not manager");
         }
+        require (markets[marketId].start < block.timestamp, "Round not started");
+        
         uint256 vestingScheduleCount = productTreasury.getVestingSchedulesCountByBeneficiary(msg.sender, marketId);
         bytes32 vestingCalendarId;
+        
         uint256 avaibleForClaim;
+        uint256 tgeAmount;
+
+
         for (uint256 calendarNumber = 0; calendarNumber < vestingScheduleCount; calendarNumber++) {
+            ITreasury.VestingSchedule memory vestingSched = productTreasury.getVestingScheduleByAddressAndIndex(msg.sender, calendarNumber, marketId);
+            if (vestingSched.revocable && vestingSched.start < block.timestamp) {
+                (tgeAmount, ) = calculateOrderSize(marketId,  vestingSched.initAmount);
+                productTreasury.gotTGE(msg.sender, calendarNumber, marketId, tgeAmount, false);
+            }
             vestingCalendarId = productTreasury.computeVestingScheduleIdForAddressAndIndex(msg.sender, calendarNumber);
             avaibleForClaim = productTreasury.computeReleasableAmount(vestingCalendarId, marketId);
             productTreasury.release(vestingCalendarId, avaibleForClaim, marketId);

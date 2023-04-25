@@ -57,4 +57,5 @@ interface ITreasury {
     function withdraw(uint256 amount) external;
     function withdrawTo(uint256 amount, address beneficiary) external;
     function forceWithdraw(uint256 amount, address receiver, uint256 marketId, bytes32 vestingScheduleId) external;
+    function gotTGE (address _holder, uint256 vestingNumber, uint256 _marketID, uint256 tgeAmount, bool _got) external;
 }

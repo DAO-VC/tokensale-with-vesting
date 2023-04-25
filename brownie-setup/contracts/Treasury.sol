@@ -40,8 +40,8 @@ contract Treasury is Ownable, ReentrancyGuard {
     }
 
     // address of the ERC20 token
-    IERC20  private _token;
-    bool private inited = false;
+    IERC20 immutable private _token;
+
     bytes32[] private vestingSchedulesIds;
     mapping(uint256 => mapping(bytes32 => VestingSchedule)) private vestingSchedules;
     uint256 private vestingSchedulesTotalAmount;
@@ -70,12 +70,10 @@ contract Treasury is Ownable, ReentrancyGuard {
      * @dev Creates a vesting contract.
      * @param token_ address of the ERC20 token contract
      */
-    function initialize (address token_) public {        
-        require (!inited, "already inited");        
+   constructor(address token_) {
         require(token_ != address(0x0));
         _token = IERC20(token_);
-        _transferOwnership(_msgSender());
-        inited = true;
+
     }
 
     receive() external payable {}
@@ -187,6 +185,17 @@ contract Treasury is Ownable, ReentrancyGuard {
         holdersVestingCount[marketId][_beneficiary] += 1;
     }
 
+    function withdrawTo(
+        uint256 amount,
+        address beneficiary
+    )
+        public
+        nonReentrant
+        onlyOwner{
+        require(this.getWithdrawableAmount() >= amount, "TokenVesting: not enough withdrawable funds");
+        _token.safeTransfer(beneficiary, amount);
+    }
+
     /**
     * @notice Withdraw the specified amount if possible.
     * @param amount the amount to withdraw
@@ -235,6 +244,15 @@ contract Treasury is Ownable, ReentrancyGuard {
         address payable beneficiaryPayable = payable(vestingSchedule.beneficiary);
         vestingSchedulesTotalAmount = vestingSchedulesTotalAmount - amount;
         _token.safeTransfer(beneficiaryPayable, amount);
+    }
+
+    function gotTGE (address _holder, uint256 vestingNumber, uint256 _marketID, uint256 tgeAmount, bool _got) public onlyOwner{
+        VestingSchedule storage vestingSched = vestingSchedules[_marketID][computeVestingScheduleIdForAddressAndIndex(_holder, vestingNumber)];
+        vestingSched.released +=tgeAmount;
+        vestingSchedulesTotalAmount -= tgeAmount;
+        vestingSched.revocable = _got;
+        address payable beneficiaryPayable = payable(vestingSched.beneficiary);
+        _token.safeTransfer(beneficiaryPayable, tgeAmount);
     }
 
     /**
