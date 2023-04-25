@@ -26,6 +26,7 @@ contract Market is AccessControl {
         uint256 cliff;        
         uint256 duration; 
         uint256 slicePeriod;
+        bool revocable;
         uint256 price; 
         uint256 minOrderSize;
         uint256 maxOrderSize;
