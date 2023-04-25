@@ -37,20 +37,18 @@ contract Market is AccessControl {
 
     mapping(uint256 => MarketInfo) markets;
 
-    /* constructor */
-    function initialize (address _currency, 
+    constructor(address _currency, 
                 address _productTreasury,
-                address _currencyTreasury) public {
-        require (!inited, "already inited");
-        _setupRole(OPERATOR, msg.sender);
-        _setupRole(WHITELISTED_ADDRESS, msg.sender);
-        _setupRole(MANAGER, msg.sender);
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        currency = IERC20(_currency);
-        productTreasury = ITreasury(_productTreasury);
-        currencyTreasury = _currencyTreasury;
-        marketsCount = 0;
-        inited = false;
+                address _currencyTreasury){
+                    _setupRole(OPERATOR, msg.sender);
+                    _setupRole(WHITELISTED_ADDRESS, msg.sender);
+                    _setupRole(MANAGER, msg.sender);
+                    _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+                    currency = IERC20(_currency);
+                    productTreasury = ITreasury(_productTreasury);
+                    currencyTreasury = _currencyTreasury;
+                    marketsCount = 0;
+
 
     }
 
