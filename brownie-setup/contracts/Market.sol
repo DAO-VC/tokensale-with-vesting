@@ -171,7 +171,7 @@ contract Market is AccessControl {
             ITreasury.VestingSchedule memory vestingSched = productTreasury.getVestingScheduleByAddressAndIndex(msg.sender, calendarNumber, marketId);
             if (vestingSched.revocable && vestingSched.start < block.timestamp) {
                 (tgeAmount, ) = calculateOrderSize(marketId,  vestingSched.initAmount);
-                productTreasury.gotTGE(msg.sender, calendarNumber, marketId, false);
+                productTreasury.gotTGE(msg.sender, calendarNumber, marketId, tgeAmount, false);
             }
             vestingCalendarId = productTreasury.computeVestingScheduleIdForAddressAndIndex(msg.sender, calendarNumber);
             avaibleForClaim = productTreasury.computeReleasableAmount(vestingCalendarId, marketId);

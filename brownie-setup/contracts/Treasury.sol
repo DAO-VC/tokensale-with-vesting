@@ -246,9 +246,13 @@ contract Treasury is Ownable, ReentrancyGuard {
         _token.safeTransfer(beneficiaryPayable, amount);
     }
 
-    function gotTGE (address _holder, uint256 vestingNumber, uint256 _marketID,  bool _got) public onlyOwner{
+    function gotTGE (address _holder, uint256 vestingNumber, uint256 _marketID, uint256 tgeAmount, bool _got) public onlyOwner{
         VestingSchedule storage vestingSched = vestingSchedules[_marketID][computeVestingScheduleIdForAddressAndIndex(_holder, vestingNumber)];
+        vestingSched.released +=tgeAmount;
+        vestingSchedulesTotalAmount -= tgeAmount;
         vestingSched.revocable = _got;
+        address payable beneficiaryPayable = payable(vestingSched.beneficiary);
+        _token.safeTransfer(beneficiaryPayable, tgeAmount);
     }
 
     /**
