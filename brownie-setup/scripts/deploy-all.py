@@ -85,7 +85,7 @@ def main():
     # market.grantRole('07f9e8c07c8b73fe513688ff4c27d5672674617e83dca1f12879f7b9a12c25de', '0xB09ecEe4335B97CbE76521c317081Bccf83d6190')
     # market.grantRole('af290d8680820aad922855f39b306097b20e28774d6c1ad35a20325630c3a02c', '0xB09ecEe4335B97CbE76521c317081Bccf83d6190')
 
-def deployNewRound(_tge, _cliff, _duration, _slice, _price, market, acct_adm, start=start, minOrderSize=minOrderSize, maxOrderSize=maxOrderSize, revocable=False, permissionLess=True, isInternal=True):
+def deployNewRound(_tge, _cliff, _duration, _slice, _price, market, acct_adm, start=start, minOrderSize=minOrderSize, maxOrderSize=maxOrderSize, revocable=True, permissionLess=True, isInternal=True):
 
     deployRound(_price, minOrderSize, maxOrderSize, _tge, start, _cliff, _duration, _slice, revocable, permissionLess, market, isInternal, acct_adm)
 

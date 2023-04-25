@@ -169,11 +169,12 @@ contract Market is AccessControl {
         uint256 tgeAmount;
 
 
-        for (uint256 calendarNumber = 0; calendarNumber < vestingScheduleCount; calendarNumber++) {        
-            if (productTreasury.getVestingScheduleByAddressAndIndex(msg.sender, marketId).revocable) {
-          (tgeAmount, ) = calculateOrderSize(marketId,  productTreasury.getVestingScheduleByAddressAndIndex(msg.sender, marketId).initAmount);
-          productTreasury.gotTGE(msg.sender, marketId, true);
-        }
+        for (uint256 calendarNumber = 0; calendarNumber < vestingScheduleCount; calendarNumber++) {
+            ITreasury.VestingSchedule memory vestingSched = productTreasury.getVestingScheduleByAddressAndIndex(msg.sender, calendarNumber, marketId);
+            if (vestingSched.revocable && vestingSched.start < block.timestamp) {
+                (tgeAmount, ) = calculateOrderSize(marketId,  vestingSched.initAmount);
+                productTreasury.gotTGE(msg.sender, calendarNumber, marketId, false);
+            }
             vestingCalendarId = productTreasury.computeVestingScheduleIdForAddressAndIndex(msg.sender, calendarNumber);
             avaibleForClaim = productTreasury.computeReleasableAmount(vestingCalendarId, marketId);
             productTreasury.release(vestingCalendarId, avaibleForClaim, marketId);
