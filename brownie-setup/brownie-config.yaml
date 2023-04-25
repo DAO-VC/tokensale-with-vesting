@@ -13,4 +13,18 @@ compiler:
       - "@openzeppelin/contracts-upgradeable=OpenZeppelin/openzeppelin-contracts-upgradeable@4.8.0"
 
 
+
 dotenv: .env
+
+networks:
+  default: development
+  development:
+    verify: False
+    chainID: 1337
+  sepolia:
+    verify: False
+  ganache:
+    verify: False
+wallets:
+  # from_key: ${PRIVATE_KEY}
+  from_mnemonic: ${MNEMONIC}
