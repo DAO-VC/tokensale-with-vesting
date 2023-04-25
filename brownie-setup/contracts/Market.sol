@@ -98,9 +98,9 @@ contract Market is AccessControl {
             require(hasRole(MANAGER, _beneficiary), "User is not a manager");
         }
         require(markets[_market].minOrderSize <= _amount && markets[_market].maxOrderSize >= _amount, "Min or max order size limit");
-        (uint256 tgeAmount, uint256 vestingAmount) = calculateOrderSize(_market, _amount);
-        // productTreasury.withdrawTo(tgeAmount, _beneficiary);
-        _migrateUser(_market, vestingAmount, _beneficiary);
+//        (uint256 tgeAmount, uint256 vestingAmount) = calculateOrderSize(_market, _amount);
+//         productTreasury.withdrawTo(tgeAmount, _beneficiary);
+        _migrateUser(_market, _amount, _beneficiary);
     }
 
     function buy(uint256 _market, uint256 _amount, address _beneficiary) public {
@@ -111,9 +111,9 @@ contract Market is AccessControl {
         }
         require(markets[_market].minOrderSize <= _amount && markets[_market].maxOrderSize >= _amount, "Min or max order size limit");
         currency.transferFrom(msg.sender, currencyTreasury, calculateOrderPrice(_market, _amount));
-        (uint256 tgeAmount, uint256 vestingAmount) = calculateOrderSize(_market, _amount);
+//        (uint256 tgeAmount, uint256 vestingAmount) = calculateOrderSize(_market, _amount);
         // productTreasury.withdrawTo(tgeAmount, _beneficiary);
-        _migrateUser(_market, vestingAmount, _beneficiary);
+        _migrateUser(_market, _amount, _beneficiary);
     }
 
     function _migrateUser(uint256 _market, uint256 _amount, address _beneficiary) private {
