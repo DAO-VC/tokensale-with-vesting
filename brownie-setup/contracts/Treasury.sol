@@ -195,18 +195,6 @@ contract Treasury is Ownable, ReentrancyGuard {
         _token.safeTransfer(beneficiary, amount);
     }
 
-    function withdrawTo(
-        uint256 amount,
-        address beneficiary
-    )
-        public
-        nonReentrant
-        onlyOwner{
-        require(this.getWithdrawableAmount() >= amount, "TokenVesting: not enough withdrawable funds");
-        _token.safeTransfer(beneficiary, amount);
-    }
-
-
     /**
     * @notice Withdraw the specified amount if possible.
     * @param amount the amount to withdraw
