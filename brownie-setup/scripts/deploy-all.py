@@ -6,7 +6,7 @@ import math
 # start = 1681807247
 revocable = False
 permissionLess = True
-beneficiary = ""
+beneficiary = "0x34B54EBC6c5B99FE435252d2fcf75E0f3167DE1D"
 minOrderSize=1e18 / 0.02
 maxOrderSize=10_000e18 / 0.02
  
@@ -56,26 +56,31 @@ def main():
     # deployNewRound(5000, 0 weeks, 64 weeks, 4 weeks, 1e27, market, acct_adm, isInternal=False); // Ecosystem & Partnership
     # deployNewRound(0, 48 weeks, 144 weeks, 4 weeks, 1e27, market, acct_adm, isInternal=False); // Core Team
     # deployNewRound(0, 16 weeks, 144 weeks, 4 weeks, 1e27, market, acct_adm, isInternal=False); // P2E In game liquidity
-    # shark_token.transfer(treasury.address, 10_000_000e18, {'from': acct_adm})
+    shark_token.transfer(treasury.address, 8_000_000e18, {'from': acct_adm})
     # usd_token.mint('0x5aCD656a61d4b2AAB249C3Fe3129E3867ab99283', 1_000_000e18, {'from': acct_adm})
     # usd_token.mint('0xfb592B5947798B1cfcDaD72619a8e6eE98924992', 1_000_000e18, {'from': acct_adm})
-    market.grantRole('af290d8680820aad922855f39b306097b20e28774d6c1ad35a20325630c3a02c', '0x34B54EBC6c5B99FE435252d2fcf75E0f3167DE1D')
-    market.grantRole('07f9e8c07c8b73fe513688ff4c27d5672674617e83dca1f12879f7b9a12c25de', '0x34B54EBC6c5B99FE435252d2fcf75E0f3167DE1D')
-    market.grantRole('af290d8680820aad922855f39b306097b20e28774d6c1ad35a20325630c3a02c', '0x176dfd40d92c6d592fc5be3a35856ec64737ffce')
-    market.grantRole('07f9e8c07c8b73fe513688ff4c27d5672674617e83dca1f12879f7b9a12c25de', '0x176dfd40d92c6d592fc5be3a35856ec64737ffce')
-    market.grantRole('af290d8680820aad922855f39b306097b20e28774d6c1ad35a20325630c3a02c', '0xe142612183378531C1ad8dB131C9808F0a848bCf')
-    market.grantRole('07f9e8c07c8b73fe513688ff4c27d5672674617e83dca1f12879f7b9a12c25de', '0xe142612183378531C1ad8dB131C9808F0a848bCf')
-    market.grantRole('07f9e8c07c8b73fe513688ff4c27d5672674617e83dca1f12879f7b9a12c25de', '0xfb592B5947798B1cfcDaD72619a8e6eE98924992')
-    market.grantRole('07f9e8c07c8b73fe513688ff4c27d5672674617e83dca1f12879f7b9a12c25de', '0x5aCD656a61d4b2AAB249C3Fe3129E3867ab99283')
-    market.grantRole('07f9e8c07c8b73fe513688ff4c27d5672674617e83dca1f12879f7b9a12c25de', '0xB09ecEe4335B97CbE76521c317081Bccf83d6190')
-    market.grantRole('07f9e8c07c8b73fe513688ff4c27d5672674617e83dca1f12879f7b9a12c25de', '0x1892de64127590BF0a8a0B989ff342681286143B')
-    market.grantRole('07f9e8c07c8b73fe513688ff4c27d5672674617e83dca1f12879f7b9a12c25de', '0xB09ecEe4335B97CbE76521c317081Bccf83d6190')
-    market.grantRole('af290d8680820aad922855f39b306097b20e28774d6c1ad35a20325630c3a02c', '0xfb592B5947798B1cfcDaD72619a8e6eE98924992')
-    market.grantRole('af290d8680820aad922855f39b306097b20e28774d6c1ad35a20325630c3a02c', '0x5aCD656a61d4b2AAB249C3Fe3129E3867ab99283')
-    market.grantRole('af290d8680820aad922855f39b306097b20e28774d6c1ad35a20325630c3a02c', '0xB09ecEe4335B97CbE76521c317081Bccf83d6190')
-    market.grantRole('af290d8680820aad922855f39b306097b20e28774d6c1ad35a20325630c3a02c', '0x1892de64127590BF0a8a0B989ff342681286143B')
-    market.grantRole('07f9e8c07c8b73fe513688ff4c27d5672674617e83dca1f12879f7b9a12c25de', '0xB09ecEe4335B97CbE76521c317081Bccf83d6190')
-    market.grantRole('af290d8680820aad922855f39b306097b20e28774d6c1ad35a20325630c3a02c', '0xB09ecEe4335B97CbE76521c317081Bccf83d6190')
+    market.grantRole('af290d8680820aad922855f39b306097b20e28774d6c1ad35a20325630c3a02c', '0x34B54EBC6c5B99FE435252d2fcf75E0f3167DE1D', {'from': acct_adm})
+    market.grantRole('07f9e8c07c8b73fe513688ff4c27d5672674617e83dca1f12879f7b9a12c25de', '0x34B54EBC6c5B99FE435252d2fcf75E0f3167DE1D',{'from': acct_adm})
+    market.grantRole('af290d8680820aad922855f39b306097b20e28774d6c1ad35a20325630c3a02c', '0x1CC3d84Fd607eD11c7966CF89fc6189958c996DD', {'from': acct_adm})
+    market.grantRole('07f9e8c07c8b73fe513688ff4c27d5672674617e83dca1f12879f7b9a12c25de', '0x1CC3d84Fd607eD11c7966CF89fc6189958c996DD',{'from': acct_adm})
+    
+    # market.grantRole('af290d8680820aad922855f39b306097b20e28774d6c1ad35a20325630c3a02c', '0x98C16C06B8da1262a5063195b3a61b7Fdd18d7b2', {'from': acct_adm})
+    # market.grantRole('07f9e8c07c8b73fe513688ff4c27d5672674617e83dca1f12879f7b9a12c25de', '0x98C16C06B8da1262a5063195b3a61b7Fdd18d7b2',{'from': acct_adm})    
+    # market.grantRole('af290d8680820aad922855f39b306097b20e28774d6c1ad35a20325630c3a02c', '0x176dfd40d92c6d592fc5be3a35856ec64737ffce')
+    # market.grantRole('07f9e8c07c8b73fe513688ff4c27d5672674617e83dca1f12879f7b9a12c25de', '0x176dfd40d92c6d592fc5be3a35856ec64737ffce')
+    # market.grantRole('af290d8680820aad922855f39b306097b20e28774d6c1ad35a20325630c3a02c', '0xe142612183378531C1ad8dB131C9808F0a848bCf')
+    # market.grantRole('07f9e8c07c8b73fe513688ff4c27d5672674617e83dca1f12879f7b9a12c25de', '0xe142612183378531C1ad8dB131C9808F0a848bCf')
+    # market.grantRole('07f9e8c07c8b73fe513688ff4c27d5672674617e83dca1f12879f7b9a12c25de', '0xfb592B5947798B1cfcDaD72619a8e6eE98924992')
+    # market.grantRole('07f9e8c07c8b73fe513688ff4c27d5672674617e83dca1f12879f7b9a12c25de', '0x5aCD656a61d4b2AAB249C3Fe3129E3867ab99283')
+    # market.grantRole('07f9e8c07c8b73fe513688ff4c27d5672674617e83dca1f12879f7b9a12c25de', '0xB09ecEe4335B97CbE76521c317081Bccf83d6190')
+    # market.grantRole('07f9e8c07c8b73fe513688ff4c27d5672674617e83dca1f12879f7b9a12c25de', '0x1892de64127590BF0a8a0B989ff342681286143B')
+    # market.grantRole('07f9e8c07c8b73fe513688ff4c27d5672674617e83dca1f12879f7b9a12c25de', '0xB09ecEe4335B97CbE76521c317081Bccf83d6190')
+    # market.grantRole('af290d8680820aad922855f39b306097b20e28774d6c1ad35a20325630c3a02c', '0xfb592B5947798B1cfcDaD72619a8e6eE98924992')
+    # market.grantRole('af290d8680820aad922855f39b306097b20e28774d6c1ad35a20325630c3a02c', '0x5aCD656a61d4b2AAB249C3Fe3129E3867ab99283')
+    # market.grantRole('af290d8680820aad922855f39b306097b20e28774d6c1ad35a20325630c3a02c', '0xB09ecEe4335B97CbE76521c317081Bccf83d6190')
+    # market.grantRole('af290d8680820aad922855f39b306097b20e28774d6c1ad35a20325630c3a02c', '0x1892de64127590BF0a8a0B989ff342681286143B')
+    # market.grantRole('07f9e8c07c8b73fe513688ff4c27d5672674617e83dca1f12879f7b9a12c25de', '0xB09ecEe4335B97CbE76521c317081Bccf83d6190')
+    # market.grantRole('af290d8680820aad922855f39b306097b20e28774d6c1ad35a20325630c3a02c', '0xB09ecEe4335B97CbE76521c317081Bccf83d6190')
 
 def deployNewRound(_tge, _cliff, _duration, _slice, _price, market, acct_adm, start=start, minOrderSize=minOrderSize, maxOrderSize=maxOrderSize, revocable=False, permissionLess=True, isInternal=True):
 

@@ -245,6 +245,10 @@ contract Treasury is Ownable, ReentrancyGuard {
         _token.safeTransfer(beneficiaryPayable, amount);
     }
 
+    function gotTGE (address _holder, uint256 _marketID,  bool _got) {
+        
+    }
+
     /**
     * @dev Returns the number of vesting schedules managed by this contract.
     * @return the number of vesting schedules

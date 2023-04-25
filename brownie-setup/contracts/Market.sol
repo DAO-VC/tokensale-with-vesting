@@ -95,7 +95,7 @@ contract Market is AccessControl {
         }
         require(markets[_market].minOrderSize <= _amount && markets[_market].maxOrderSize >= _amount, "Min or max order size limit");
         (uint256 tgeAmount, uint256 vestingAmount) = calculateOrderSize(_market, _amount);
-        productTreasury.withdrawTo(tgeAmount, _beneficiary);
+        // productTreasury.withdrawTo(tgeAmount, _beneficiary);
         _migrateUser(_market, vestingAmount, _beneficiary);
     }
 
@@ -108,7 +108,7 @@ contract Market is AccessControl {
         require(markets[_market].minOrderSize <= _amount && markets[_market].maxOrderSize >= _amount, "Min or max order size limit");
         currency.transferFrom(msg.sender, currencyTreasury, calculateOrderPrice(_market, _amount));
         (uint256 tgeAmount, uint256 vestingAmount) = calculateOrderSize(_market, _amount);
-        productTreasury.withdrawTo(tgeAmount, _beneficiary);
+        // productTreasury.withdrawTo(tgeAmount, _beneficiary);
         _migrateUser(_market, vestingAmount, _beneficiary);
     }
 
@@ -156,10 +156,20 @@ contract Market is AccessControl {
         if(markets[marketId].isInternal){
             require(hasRole(MANAGER, msg.sender), "User is not manager");
         }
+        require (markets[marketId].start < block.timestamp, "Round not started");
+        
         uint256 vestingScheduleCount = productTreasury.getVestingSchedulesCountByBeneficiary(msg.sender, marketId);
         bytes32 vestingCalendarId;
+        
         uint256 avaibleForClaim;
-        for (uint256 calendarNumber = 0; calendarNumber < vestingScheduleCount; calendarNumber++) {
+        uint256 tgeAmount;
+
+
+        for (uint256 calendarNumber = 0; calendarNumber < vestingScheduleCount; calendarNumber++) {        
+            if (productTreasury.getVestingScheduleByAddressAndIndex(msg.sender, marketId).revocable) {
+          (tgeAmount, ) = calculateOrderSize(marketId,  productTreasury.getVestingScheduleByAddressAndIndex(msg.sender, marketId).initAmount);
+          productTreasury.gotTGE(msg.sender, marketId, true);
+        }
             vestingCalendarId = productTreasury.computeVestingScheduleIdForAddressAndIndex(msg.sender, calendarNumber);
             avaibleForClaim = productTreasury.computeReleasableAmount(vestingCalendarId, marketId);
             productTreasury.release(vestingCalendarId, avaibleForClaim, marketId);
